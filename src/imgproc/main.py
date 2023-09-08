@@ -4,6 +4,7 @@ This module contains functions for image processing.
 
 from PIL import Image
 from random import randint as rd
+import pprint as pp
 
 def getColors(file: str, x: int = None, y: int = None, width: int = None, height: int = None) -> dict:
     """
@@ -17,17 +18,17 @@ def getColors(file: str, x: int = None, y: int = None, width: int = None, height
     if not x and not y and not width and not height:
         # If not size is specified, return the colors of the whole image
         width, height = image.size
-        for y in range(height):
-            for x in range(width):
-                color = image.getpixel((x, y))
+        for i in range(height):
+            for j in range(width):
+                color = image.getpixel((j, i))
                 color_hex = "#{:02X}{:02X}{:02X}".format(color[0], color[1], color[2])
-                colors[(x, y)] = color_hex
+                colors[(j, i)] = color_hex
     else:
-        for y in range(y, height + y):
-            for x in range(x, width + x):
-                color = image.getpixel((x, y))
+        for i in range(y, height + y):
+            for j in range(x, width + x):
+                color = image.getpixel((i, j))
                 color_hex = "#{:02X}{:02X}{:02X}".format(color[0], color[1], color[2])
-                colors[(x, y)] = color_hex
+                colors[(i, j)] = color_hex
     image.close()
 
     return colors
@@ -69,3 +70,4 @@ if __name__ == '__main__':
             new.append((rd(0, 255), rd(0, 255), rd(0, 255)))
 
     updatePixels("data/shrek.jpg", 0, 0, 50, 100, new)
+
