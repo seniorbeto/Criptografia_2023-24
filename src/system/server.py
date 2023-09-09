@@ -2,6 +2,8 @@ from .user import User
 from .camera import Camera
 import json
 import os
+from PIL import Image, PngImagePlugin
+from time import time
 
 class Server():
     def __init__(self) -> None:
@@ -144,6 +146,65 @@ class Server():
                     raise ValueError("Wrong password")
         raise ValueError("User not found")
 
+    def store_image(self, image_path: str, camera_name, owner_name):
+        """ Stores the image in the server, IMAGE FORMAT: PNG
+        Args:
+            image_path (str): path to the image 
+            camera_name (str): name of the camera
+            owner_name (str): name of the owner
+        """
+        date = int(time())
+        # check if owner is valid
+        owner = None
+        for user in self.__users:
+            if user.name == owner_name:
+                owner = user
+                break
+        if owner == None:
+            raise ValueError("Owner not found")
+            
+
+        # check if camera exists
+        
+        for camera in self.__cameras:
+            if camera.name == camera_name and camera.owner == owner.name:
+                break
+        else:
+            raise ValueError("Camera not found")
+        
+        # chekc  tags #TODO
+        pass
+        # check signature #TODO
+        pass
+        # check certificate #TODO
+        pass
+        # check if image is valid #TODO
+        if not image_path.endswith(".png"):
+            raise ValueError("Image format not supported")
+        # store image 
+        
+        # dev and debug purposes
+        print("Storing image: ", image_path)
+        image = Image.open(image_path)
+        image.load()
+        info = PngImagePlugin.PngInfo()
+        # copy metadata from original image to new image
+        for key, value in image.info.items():
+            info.add_text(str(key), str(value))
+        # add new metadata
+        info.add_text("owner", owner_name)
+        info.add_text("camera", camera_name)
+        info.add_text("tag", "123456789")
+        dest = f"{self.__path}/data/images/{owner_name}/{camera_name}/{date}.png"
+        # create directories if they dont exist
+        os.makedirs(os.path.dirname(dest), exist_ok=True)
+
+        image.save(dest, "PNG", pnginfo=info)
+        print("Image stored with metadata: ", info)
+
+        
+
+
     # for debug
     def delete_all_users(self):
         self.__users = []
@@ -153,5 +214,6 @@ class Server():
     def delete_all_cameras(self):
         self.__cameras = []
         self.__update_cameras_json()
+    
     
     
