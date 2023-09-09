@@ -10,10 +10,23 @@ class PlateDetector():
 
     
     def detect(self, image_path: str) -> list:
+        """Detects number plates in an image and returns a list of coordinates of the plates
+        Args:
+            image_path (str): Path to the image
+        Returns:
+            list: List of coordinates of the plates
+        """
         image = cv2.imread(image_path)
         return self.detect(image)
     
     def detect(self, image: cv2.typing.MatLike) -> list:
+        """Detects number plates in an image and returns a list of coordinates of the plates
+        Args:
+            image (cv2.typing.MatLike): Image
+        Returns:
+            list: List of coordinates of the plates
+        """
+        
         if image is None:
             raise Exception("Could not read image")
         # Convert to grayscale
@@ -35,7 +48,14 @@ class PlateDetector():
         
         return plates_coordinates
 
-    def detect_and_show(self, image_path:str) -> list:
+    def detect_and_show(self, image_path:str) -> None:
+        """Detects number plates in an image and shows the image with the plates highlighted
+        Args:
+            image_path (str): Path to the image
+        Returns:
+            None
+        """
+
         image = cv2.imread(image_path)
         if image is None:
             raise Exception("Could not read image")
