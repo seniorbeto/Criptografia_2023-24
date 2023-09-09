@@ -21,7 +21,7 @@ getColors('data/shrek.jpg', 0, 0, 5, 5)
 ```
 Siendo la imagen: 
 
-![shrek](src/imgproc/data/shrek.jpg)
+![shrek](data/shrek.jpg)
 
 Devolvería:
 
@@ -80,4 +80,4 @@ updatePixels("data/shrek.jpg", 0, 0, 50, 100, new)
 
 y siendo la imagen la misma utilizada en el ejemplo anterior, se obtendría la siguiente imagen:
 
-![shrek](src/imgproc/new_image.jpg)
+![shrek](src/imgproc/new_image.png)
