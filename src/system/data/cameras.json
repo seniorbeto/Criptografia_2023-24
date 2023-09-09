@@ -1,0 +1,10 @@
+[
+    {
+        "name": "camera1",
+        "owner": "user1"
+    },
+    {
+        "name": "camera2",
+        "owner": "user2"
+    }
+]
