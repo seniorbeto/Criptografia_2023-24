@@ -1,16 +1,19 @@
 import cv2
+
 class PlateDetector():
     def __init__(self) -> None:
         self.__classifier = cv2.CascadeClassifier("src/computer_vision/haarcascade_russian_plate_number.xml")
-        self.scaleFactor = 1.02
+        self.scaleFactor = 1.03
         self.minNeighbors = 7
 
     
-    def detect(self, image_path: str):
+    def detect(self, image_path: str) -> list:
         image = cv2.imread(image_path)
+        return self.detect(image)
+    
+    def detect(self, image: cv2.typing.MatLike) -> list:
         if image is None:
             raise Exception("Could not read image")
-        
         # Convert to grayscale
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         # Detect plates
@@ -29,19 +32,15 @@ class PlateDetector():
             plates_coordinates.append((x, y, w, h))
         
         return plates_coordinates
-    
-    def detect_and_show(self, image_path: str):
+
+    def detect_and_show(self, image_path:str) -> list:
         image = cv2.imread(image_path)
         if image is None:
-            raise Exception("Could not read image: " + image_path)
-        
-        # Convert to grayscale
-        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        # Detect plates
-        detections = self.__classifier.detectMultiScale(gray, scaleFactor=self.scaleFactor, minNeighbors=self.minNeighbors)
+            raise Exception("Could not read image")
+        coords = self.detect(image)
 
         # loop over the number plate bounding boxes
-        for (x, y, w, h) in detections:
+        for (x, y, w, h) in coords:
             # draw a rectangle around the number plate
             cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 255), 2)
             cv2.putText(image, "Number plate detected", (x - 20, y - 10),
