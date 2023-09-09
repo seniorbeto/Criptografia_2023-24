@@ -2,6 +2,9 @@ import cv2
 class PlateDetector():
     def __init__(self) -> None:
         self.__classifier = cv2.CascadeClassifier("src/computer_vision/haarcascade_russian_plate_number.xml")
+        self.scaleFactor = 1.02
+        self.minNeighbors = 7
+
     
     def detect(self, image_path: str):
         image = cv2.imread(image_path)
@@ -11,7 +14,7 @@ class PlateDetector():
         # Convert to grayscale
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         # Detect plates
-        detections = self.__classifier.detectMultiScale(gray, scaleFactor=1.05, minNeighbors=7)
+        detections = self.__classifier.detectMultiScale(gray, scaleFactor=self.scaleFactor, minNeighbors=self.minNeighbors)
 
         plates_coordinates = []
 
@@ -30,12 +33,12 @@ class PlateDetector():
     def detect_and_show(self, image_path: str):
         image = cv2.imread(image_path)
         if image is None:
-            raise Exception("Could not read image")
+            raise Exception("Could not read image: " + image_path)
         
         # Convert to grayscale
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         # Detect plates
-        detections = self.__classifier.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=7)
+        detections = self.__classifier.detectMultiScale(gray, scaleFactor=self.scaleFactor, minNeighbors=self.minNeighbors)
 
         # loop over the number plate bounding boxes
         for (x, y, w, h) in detections:
@@ -47,6 +50,17 @@ class PlateDetector():
             # extract the number plate from the grayscale image
             # plates_coordinates.append((x, y, w, h))
         
+        # resize the image for better display keeping the aspect ratio in mind
+        # the maximum width of the image is set to 900 pixels
+        width = image.shape[1]
+        height = image.shape[0]
+        max_width = 900
+        if width > max_width:
+            ratio = max_width / width
+            height = int(height * ratio)
+            image = cv2.resize(image, (max_width, height), interpolation=cv2.INTER_AREA)
+
+        # show the output image
         cv2.imshow("Number plate detected", image)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
