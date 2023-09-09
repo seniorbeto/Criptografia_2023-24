@@ -6,6 +6,32 @@ from PIL import Image
 from random import randint as rd
 import pprint as pp
 
+def rgbToHex(rgb: tuple) -> str:
+    """
+    Converts a tuple of RGB values to a hexadecimal color code.
+    """
+    if len(rgb) != 3:
+        raise ValueError("The tuple must contain 3 values.")
+    for i in rgb:
+        if i < 0 or i > 255:
+            raise ValueError("The rgb values must be between 0 and 255.")
+
+    return "#{:02X}{:02X}{:02X}".format(rgb[0], rgb[1], rgb[2])
+
+def hexToRgb(hex: str | int) -> tuple:
+    """
+    Converts a hexadecimal color code to a tuple of RGB values.
+    """
+    if type(hex) == int and hex < 0 or hex > 0xFFFFFF:
+        raise ValueError("The hex value must be between 0 and 0xFFFFFF.")
+    elif type(hex) == str and len(hex) != 7 and hex[0] != "#":
+        raise ValueError("The hex value must be a string of length 7.")
+
+    if type(hex) == str and hex[0] == "#":
+        return (int(hex[1:3], 16), int(hex[3:5], 16), int(hex[5:7], 16))
+    else:
+        return (int(hex[0:2], 16), int(hex[2:4], 16), int(hex[4:6], 16))
+
 def getColors(file: str, x: int = None, y: int = None, width: int = None, height: int = None) -> dict:
     """
     Returns a dictionary where the keys are the coordinates of the pixels and the values are the colors of each pixel
@@ -21,13 +47,13 @@ def getColors(file: str, x: int = None, y: int = None, width: int = None, height
         for i in range(height):
             for j in range(width):
                 color = image.getpixel((j, i))
-                color_hex = "#{:02X}{:02X}{:02X}".format(color[0], color[1], color[2])
+                color_hex = rgbToHex(color)
                 colors[(j, i)] = color_hex
     else:
         for i in range(y, height + y):
             for j in range(x, width + x):
                 color = image.getpixel((i, j))
-                color_hex = "#{:02X}{:02X}{:02X}".format(color[0], color[1], color[2])
+                color_hex = rgbToHex(color)
                 colors[(i, j)] = color_hex
     image.close()
 
@@ -65,9 +91,10 @@ def updatePixels(file: str, x: int, y: int, width: int, height: int, color: tupl
 if __name__ == '__main__':
 
     new = []
-    for _ in range(50):
-        for _ in range(100):
-            new.append((rd(0, 255), rd(0, 255), rd(0, 255)))
+    for _ in range(5):
+        for _ in range(5):
+            new.append((255, 0, 0))
 
-    updatePixels("data/shrek.jpg", 0, 0, 50, 100, new)
+    updatePixels("data/shrek.jpg", 0, 0, 5, 5, new)
+    pp.pprint(getColors("new_image.jpg", 0, 0, 5, 5))
 

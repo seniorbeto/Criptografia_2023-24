@@ -1,3 +1,3 @@
-from main import getPixels, updatePixels
+from main import getPixels, updatePixels, hexToRgb, rgbToHex
 
-__all__ = ["getPixels", "updatePixels"]
+__all__ = ["getPixels", "updatePixels", "hexToRgb", "rgbToHex"]
