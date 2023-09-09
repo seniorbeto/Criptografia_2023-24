@@ -1,4 +1,4 @@
-from src.computer_vision.computer_vision import PlateDetector
+from src.cv import PlateDetector
 
 pd = PlateDetector()
 image_path = "test_images/N1.jpeg"

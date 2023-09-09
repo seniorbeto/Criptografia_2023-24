@@ -1,8 +1,10 @@
 import cv2
+import os
 
 class PlateDetector():
     def __init__(self) -> None:
-        self.__classifier = cv2.CascadeClassifier("src/computer_vision/haarcascade_russian_plate_number.xml")
+        self_path = os.path.dirname(os.path.abspath(__file__))
+        self.__classifier = cv2.CascadeClassifier(f"{self_path}/haarcascade_russian_plate_number.xml")
         self.scaleFactor = 1.03
         self.minNeighbors = 7
 
