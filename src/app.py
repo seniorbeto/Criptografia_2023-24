@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 from screens.home_screen import HomeScreen
 from screens.login_toplevel import LoginWindow
+from screens.admin_mode_screen import AdminScreen
 
 class App():
     def __init__(self):
@@ -10,11 +11,14 @@ class App():
         self.root.configure(highlightthickness=4, highlightcolor="blue")
         self.root.geometry("600x400")
 
+        self.root.grid_rowconfigure(0, weight=1)
+        self.root.grid_columnconfigure(0, weight=1)
+
         self.frames = {}
-        for fr in (HomeScreen, ):
+        for fr in (HomeScreen, AdminScreen):
             frame = fr(self.root)
             self.frames[fr] = frame
-            frame.pack(fill=tk.BOTH, expand=True)
+            frame.grid(row=0, column=0, sticky=tk.NSEW)
 
         self.showScreen(HomeScreen)
         self.displayMenu()
@@ -31,8 +35,36 @@ class App():
 
         self.main_menu.add_command(label = "Log in", command=self.login)
 
+    def displayAdminMenu(self):
+        self.main_menu = tk.Menu(self.root)
+        self.root.config(menu = self.main_menu)
+
+        self.user_menu = tk.Menu(self.main_menu, tearoff=False)
+        self.main_menu.add_cascade(label="User", menu=self.user_menu)
+        self.user_menu.add_command(label = "Log out")
+        self.user_menu.add_command(label = "Change Password")
+
+        self.camera_menu = tk.Menu(self.main_menu, tearoff=False)
+        self.main_menu.add_cascade(label="Camera", menu=self.camera_menu)
+        self.camera_menu.add_command(label = "Add Camera", command=self.add_camera)
+        self.camera_menu.add_command(label = "Remove Camera", command=self.remove_camera)
+
+        self.main_menu.add_command(label = "Dencrypt")
+        self.main_menu.add_command(label = "Exit", command=self.disable_admin_mode)
+
+    def add_camera(self):...
+    def remove_camera(self):...
+
     def login(self):
-        LoginWindow(self.root)
+        LoginWindow(self)
+
+    def enable_admin_mode(self):
+        self.showScreen(AdminScreen)
+        self.displayAdminMenu()
+
+    def disable_admin_mode(self):
+        self.showScreen(HomeScreen)
+        self.displayMenu()
 
 if __name__ == '__main__':
     App()

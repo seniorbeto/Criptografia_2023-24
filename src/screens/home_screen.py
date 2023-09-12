@@ -12,6 +12,7 @@ class HomeScreen(tk.Frame):
 
         for row in range(self.rows):
             for col in range(self.columns):
+                # Aquí hay que sustituir el label por un canvas con la imagen de la cámara
                 camera = tk.Label(self, text=f"Camera {row*col}")
                 camera.grid(row=row, column=col, sticky=tk.NSEW)
 
