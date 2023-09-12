@@ -8,7 +8,6 @@ class App():
     def __init__(self):
         self.root = tk.Tk()
         self.root.title("La pinga de la ponga")
-        self.root.configure(highlightthickness=4, highlightcolor="blue")
         self.root.geometry("600x400")
 
         self.root.grid_rowconfigure(0, weight=1)
