@@ -1,5 +1,5 @@
 import unittest
-from src.system import *
+from src.packages.system import *
 
 class TestServer(unittest.TestCase):
     def setUp(self):

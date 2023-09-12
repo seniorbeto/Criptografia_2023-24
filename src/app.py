@@ -3,10 +3,12 @@ from tkinter import ttk
 from screens.home_screen import HomeScreen
 from screens.login_toplevel import LoginWindow
 from screens.admin_mode_screen import AdminScreen
+from api import ServerAPI
 
 class App():
     def __init__(self):
         self.root = tk.Tk()
+        self.api_server = ServerAPI()
         self.root.title("La pinga de la ponga")
         self.root.geometry("600x400")
 
@@ -15,7 +17,7 @@ class App():
 
         self.frames = {}
         for fr in (HomeScreen, AdminScreen):
-            frame = fr(self.root)
+            frame = fr(self)
             self.frames[fr] = frame
             frame.grid(row=0, column=0, sticky=tk.NSEW)
 

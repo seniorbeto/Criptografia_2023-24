@@ -1,20 +1,29 @@
 import tkinter as tk
 from tkinter import ttk
+from PIL import Image, ImageTk
 
 class HomeScreen(tk.Frame):
-    def __init__(self, parent):
-        super().__init__(parent, bg="#212121")
+    def __init__(self, app):
+        super().__init__(app.root, bg="#212121")
         self.pack(fill=tk.BOTH, expand=True)
-        parent.bind("<Configure>", self.on_resize)
+        app.root.bind("<Configure>", self.on_resize)
 
+        self.app = app
         self.rows = 4
         self.columns = 4
+        images = self.app.api_server.getCameraImages(self.rows * self.columns)
+        print(len(images))
 
         for row in range(self.rows):
             for col in range(self.columns):
                 # Aquí hay que sustituir el label por un canvas con la imagen de la cámara
-                camera = tk.Label(self, text=f"Camera {row*col}", background="#5e5e5e", foreground="#ffffff")
-                camera.grid(row=row, column=col, sticky=tk.NSEW, padx=10, pady=10)
+                index = (row + 1)*(col + 1)-1
+                if index >= len(images):
+                    lab = tk.Label(self, text="No signal", bg="#212121", fg="#ffffff")
+                else:
+                    camera = ImageTk.PhotoImage(images[index])
+                    lab = tk.Label(image=camera)
+                lab.grid(row=row, column=col, sticky=tk.NSEW, padx=10, pady=10)
 
 
     def on_resize(self, event):

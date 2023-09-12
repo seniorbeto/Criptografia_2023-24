@@ -2,6 +2,7 @@ from .user import User
 from .camera import Camera
 import json
 import os
+import random
 from PIL import Image, PngImagePlugin
 from time import time
 
@@ -214,6 +215,46 @@ class Server():
     def delete_all_cameras(self):
         self.__cameras = []
         self.__update_cameras_json()
-    
-    
-    
+
+    def get_camera_images(self, num: int, author: str | None = None) -> list:
+        """Returns a list of images from the given camera
+        Args:
+            num (int): number of images to return
+            author (str, optional): name of the camera owner. Defaults to None.
+        Returns:
+            list: list of images
+        """
+        users = os.listdir(f"{self.__path}/data")
+
+        if author is not None and author not in users:
+            raise ValueError("Author not found")
+
+        images = []
+        if author is not None:
+            cameras = os.listdir(f"{self.__path}/data/{author}")
+            for camera in cameras:
+                pictures = os.listdir(f"{self.__path}/data/{author}/{camera}")
+                for picture in pictures:
+                    images.append(Image.open(f"{self.__path}/data/{author}/{camera}/{picture}"))
+
+        else:
+            # Check if there are enough images
+            total_images = 0
+            for user in users:
+                cameras = os.listdir(f"{self.__path}/data/{user}")
+                for camera in cameras:
+                    pictures = os.listdir(f"{self.__path}/data/{user}/{camera}")
+                    total_images += len(pictures)
+            if total_images < num:
+                num = total_images
+            while len(images) < num and len(users) > 0:
+                author = random.choice(users)
+                cameras = os.listdir(f"{self.__path}/data/{author}")
+                if len(cameras) > 0:
+                    camera = random.choice(cameras)
+                    pictures = os.listdir(f"{self.__path}/data/{author}/{camera}")
+                    if len(pictures) > 0:
+                        picture = random.choice(pictures)
+                        images.append(Image.open(f"{self.__path}/data/{author}/{camera}/{picture}"))
+
+        return images[:num]
