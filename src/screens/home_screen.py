@@ -12,7 +12,7 @@ class HomeScreen(tk.Frame):
         self.rows = 4
         self.columns = 4
         self.camera_images = []
-        images = self.app.api_server.getCameraImages(self.rows * self.columns)
+        images = self.app.api_server.get_images(self.rows*self.columns)
         print(len(images))
 
         for row in range(self.rows):
