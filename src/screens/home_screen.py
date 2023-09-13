@@ -11,18 +11,19 @@ class HomeScreen(tk.Frame):
         self.app = app
         self.rows = 4
         self.columns = 4
+        self.camera_images = []
         images = self.app.api_server.getCameraImages(self.rows * self.columns)
         print(len(images))
 
         for row in range(self.rows):
             for col in range(self.columns):
-                # Aquí hay que sustituir el label por un canvas con la imagen de la cámara
                 index = (row + 1)*(col + 1)-1
                 if index >= len(images):
                     lab = tk.Label(self, text="No signal", bg="#212121", fg="#ffffff")
                 else:
                     camera = ImageTk.PhotoImage(images[index])
-                    lab = tk.Label(image=camera)
+                    self.camera_images.append(camera)
+                    lab = tk.Label(self, image=camera)
                 lab.grid(row=row, column=col, sticky=tk.NSEW, padx=10, pady=10)
 
 
