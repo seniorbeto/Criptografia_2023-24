@@ -253,26 +253,6 @@ class Server():
             images.append(Image.open(choice))
         
         return images
-
-        # old code
-        for i in range(num):
-            # get random user that has taken a picture
-            author=None
-            while author is None:
-                user = random.choice(self.__users)
-                if user.name in os.listdir(f"{self.__path}/data/images"):
-                    author = user.name
-
-            # get random camera
-            author_cameras = os.listdir(f"{self.__path}/data/images/{author}")
-            camera = random.choice(author_cameras)
-            
-            # get random image from camera
-            images_path = f"{self.__path}/data/images/{author}/{camera}"
-            image = random.choice(os.listdir(images_path))
-            images.append(Image.open(f"{images_path}/{image}"))
-
-        return images
         
     def __get_images_from_camera(self, author: str, camera: str, num: int) -> list:
         """Returns a list of images from the given camera
