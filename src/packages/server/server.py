@@ -231,6 +231,30 @@ class Server():
         """
         images = []
         # get random images from random users
+
+        cameras = self.__cameras
+
+        # get just the cameras that have taken a picture
+        cameras = [camera for camera in cameras if (camera.owner in os.listdir(f"{self.__path}/data/images") and camera.name in os.listdir(f"{self.__path}/data/images/{camera.owner}"))]
+
+        # get paths of all images
+
+        images_paths = []
+        for camera in cameras:
+            image_path = f"{self.__path}/data/images/{camera.owner}/{camera.name}"
+            images_paths += [f"{image_path}/{image}" for image in os.listdir(image_path)]
+        
+        # get random images
+        num = min(num, len(images_paths))
+        
+        choices = random.sample(images_paths, k=num)
+
+        for choice in choices:
+            images.append(Image.open(choice))
+        
+        return images
+
+        # old code
         for i in range(num):
             # get random user that has taken a picture
             author=None
