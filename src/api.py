@@ -3,6 +3,8 @@ from PIL import Image
 
 class ServerAPI():
     def __init__(self):
+        self.username = None
+        self.password = None
         self.server = Server()
 
     def get_images(self, num: int, author: str | None = None, camera: str | None=None) -> list:
@@ -38,7 +40,18 @@ class ServerAPI():
             password (str): password of the user
         """
         return self.server.create_user(name, password)
-    
+
+    def logout(self):
+        """
+        Logs out a user from the server
+        :return:
+        """
+        self.username = None
+        self.password = None
+
+    def get_cameras(self) -> list:
+        return self.server.get_cameras(self.username)
+
     def login(self, name: str, password: str) -> bool:
         """Logs in a user
         Args:
@@ -53,7 +66,11 @@ class ServerAPI():
         o igual no es necesario un login, depende de la implementacion que 
         hagamos de la seguridad 
         """
-        pass 
+        if self.server.login(name, password):
+            self.username = name
+            self.password = password
+        else:
+            raise Exception("User or password incorrect")
 
     def upload_photo(self, path: str, camera: str, author: str) -> None:
         """Uploads a photo to the server

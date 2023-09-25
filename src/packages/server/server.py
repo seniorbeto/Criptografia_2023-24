@@ -361,3 +361,33 @@ class Server():
         self.delete_all_users()
         self.delete_all_cameras()
         self.delete_all_images()
+
+    def login(self, name: str, password: str) -> bool:
+        """Logs in a user
+        Args:
+            name (str): name of the user
+            password (str): password of the user
+        Returns:
+            bool: True if the user was logged in, False otherwise
+        """
+        for user in self.__users:
+            if user.name == name:
+                if user.password == password:
+                    return True
+                else:
+                    return False
+        return False
+
+    def get_user_cameras(self, user_name: str) -> list:
+        """Returns the list of cameras of the given user
+        Args:
+            user (User): user
+        Returns:
+            list: list of cameras
+        """
+        # check if user exists
+        users = [user.name for user in self.__users]
+        if user_name not in users:
+            raise ValueError("User not found")
+
+        return [camera.name for camera in self.__cameras if camera.owner == user_name]

@@ -26,10 +26,9 @@ class LoginWindow(tk.Toplevel):
         button.pack(padx=10, pady=30)
 
     def check_login(self):
-        if self.username_entry.get() == "admin" and self.password_entry.get() == "admin":
-            self.destroy()
+        try:
+            self.app.api.login(self.username_entry.get(), self.password_entry.get())
             self.app.enable_admin_mode()
-        else:
-            self.username_entry.delete(0, tk.END)
-            self.password_entry.delete(0, tk.END)
-            messagebox.showerror("Error", "AY SEÑORA VACA METEMO QUE NONONONONONO")
+            self.destroy()
+        except Exception:
+            messagebox.showerror("Error", "User or password incorrect")
