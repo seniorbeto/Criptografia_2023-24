@@ -2,9 +2,9 @@ import tkinter as tk
 from tkinter import ttk
 from screens.home_screen import HomeScreen
 from screens.login_toplevel import LoginWindow
-from screens.add_camera_toplevel import AddCameraWindow
 from screens.admin_mode_screen import AdminScreen
 from api import ServerAPI
+from packages.server import Server
 
 class App():
     def __init__(self):
@@ -25,6 +25,16 @@ class App():
 
         self.showScreen(HomeScreen)
         self.displayMenu()
+
+        #DEBUG##############
+        self.api.login("a", "a")
+        self.enable_admin_mode()
+        for i in range(1, 20):
+            try:
+                self.api.create_camera(f"camera{i}", "a")
+            except:
+                pass
+        #####################
 
         self.root.mainloop()
 
@@ -47,29 +57,17 @@ class App():
         self.user_menu.add_command(label = "Log out", command=self.log_out)
         self.user_menu.add_command(label = "Change Password")
 
-        self.camera_menu = tk.Menu(self.main_menu, tearoff=False)
-        self.main_menu.add_cascade(label="Camera", menu=self.camera_menu)
-        self.camera_menu.add_command(label = "Add Camera", command=self.add_camera)
-        self.delete_camera_menu = tk.Menu(self.camera_menu, tearoff=False)
-        self.camera_menu.add_cascade(label = "Remove Camera", menu=self.delete_camera_menu)
-
         self.main_menu.add_command(label = "Dencrypt")
 
     def log_out(self):
         self.api.logout()
         self.disable_admin_mode()
 
-    def add_camera(self):
-        AddCameraWindow(self)
-
-    def remove_camera(self):
-        for cam in self.api.get_cameras():
-            self.delete_camera_menu.add_command(label=cam)
-
     def login(self):
         LoginWindow(self)
 
     def enable_admin_mode(self):
+        self.frames[AdminScreen].initiate_main_display()
         self.showScreen(AdminScreen)
         self.displayAdminMenu()
 
@@ -78,4 +76,7 @@ class App():
         self.displayMenu()
 
 if __name__ == '__main__':
-    App()
+    """s = Server()
+    for i in range(9, 19):
+        s.create_camera(f"camera{i}", "a")"""
+    a = App()

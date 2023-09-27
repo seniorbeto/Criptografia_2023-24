@@ -25,13 +25,13 @@ class ServerAPI():
         """
         return self.server.create_camera(name, owner_name)
     
-    def remove_camera(self, name: str, owner_name: str):
+    def remove_camera(self, name: str):
         """Removes a camera
         Args:
             name (str): name of the camera
             author (str): name of the camera owner
         """
-        return self.server.remove_camera(name, owner_name)
+        return self.server.remove_camera(name, self.username)
     
     def create_user(self, name: str, password: str) -> None:
         """Creates a new user
@@ -50,7 +50,7 @@ class ServerAPI():
         self.password = None
 
     def get_cameras(self) -> list:
-        return self.server.get_cameras(self.username)
+        return self.server.get_user_cameras(self.username)
 
     def login(self, name: str, password: str) -> bool:
         """Logs in a user
