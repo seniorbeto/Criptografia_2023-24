@@ -21,14 +21,14 @@ class LoginWindow(tk.Toplevel):
         self.password_entry = tk.Entry(self)
         self.password_entry.pack(padx=10, pady=15)
 
-        #############################
-        button = tk.Button(self, text="APAÑAO", command=self.check_login)
+        button = tk.Button(self, text="LOGIN", command=self.check_login)
         button.pack(padx=10, pady=30)
 
     def check_login(self):
         try:
             self.app.api.login(self.username_entry.get(), self.password_entry.get())
-            self.app.enable_admin_mode()
+            self.app.showUserScreen()
             self.destroy()
-        except Exception:
+        except Exception as e:
+            print(e)
             messagebox.showerror("Error", "User or password incorrect")

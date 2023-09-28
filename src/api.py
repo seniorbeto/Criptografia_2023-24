@@ -1,4 +1,4 @@
-from .packages.server import Server
+from packages.server import Server
 from PIL import Image
 
 class ServerAPI():

@@ -1,47 +1,76 @@
 import tkinter as tk
 from tkinter import ttk
 from PIL import Image, ImageTk
+from .login_toplevel import LoginWindow
 
 class HomeScreen(tk.Frame):
     def __init__(self, app):
         super().__init__(app.root, bg="#212121")
         self.pack(fill=tk.BOTH, expand=True)
-        app.root.bind("<Configure>", self.on_resize)
-
         self.app = app
-        self.rows = 4
-        self.columns = 4
-        self.camera_images = []
-        self.images = self.app.api.get_images(self.rows * self.columns)
-        self.update_images()
-        # print(len(images))
 
-    def update_images(self):
-        for row in range(self.rows):
-            for col in range(self.columns):
-                index = (row + 1)*(col + 1)-1
-                if index >= len(self.images):
-                    lab = tk.Label(self, text="No signal", bg="#212121", fg="#ffffff")
-                else:
-                    camera = ImageTk.PhotoImage(self.escale_image(self.images[index]))
-                    self.camera_images.append(camera)
-                    lab = tk.Label(self, image=camera)
-                lab.grid(row=row, column=col, sticky=tk.NSEW, padx=10, pady=10)
+    def initiate_main_display(self):
+        # First, if the frame is not empty, we destroy all the widgets
+        for w in self.winfo_children():
+            w.destroy()
+        # Then, we create the main menu
+        self.create_main_menu()
+        # We create a canvas to put the scrollbar in it
+        # Calculate de height that the menu is taking
+        self.canvas = tk.Canvas(self, background="#212121", highlightthickness=0, borderwidth=0)
+        self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        self.scrollbar = tk.Scrollbar(self, orient=tk.VERTICAL, command=self.canvas.yview)
+        self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
-    def escale_image(self, image):
-        width, height = image.size
-        max_width = self.winfo_width()//self.columns
-        max_height = self.winfo_height()//self.rows
-        if max_height <= 1 or max_width <= 1:
-            max_width = 600
-            max_height = 400
-        ratio = max(max_width/width, max_height/height)
+        # We configure the canvas to use the scrollbar
+        self.canvas.configure(yscrollcommand=self.scrollbar.set)
+        self.canvas.bind("<Configure>", self.canvas_reconfigure)
 
-        return image.resize((int(width*ratio), int(height*ratio)))
+        self.show_images()
+        self.canvas.bind_all("<MouseWheel>", self.on_mousewheel)
 
+    def canvas_reconfigure(self, event):
+        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
 
-    def on_resize(self, event):
-        for row in range(self.rows):
-            self.grid_rowconfigure(row, weight=1)
-        for col in range(self.columns):
-            self.grid_columnconfigure(col, weight=1)
+    def on_mousewheel(self, event):
+        self.canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+
+    def create_main_menu(self):
+        self.main_menu = tk.Menu(self.app.root)
+        self.app.root.config(menu=self.main_menu)
+
+        # We create the file menu
+        self.file_menu = tk.Menu(self.main_menu, tearoff=0)
+        self.main_menu.add_cascade(label="File", menu=self.file_menu)
+        self.file_menu.add_command(label="Exit", command=self.app.root.quit)
+
+        # We create the user menu
+        self.user_menu = tk.Menu(self.main_menu, tearoff=0)
+        self.main_menu.add_cascade(label="User", menu=self.user_menu)
+        self.user_menu.add_command(label="Login", command=self.login)
+        self.user_menu.add_command(label="Register", command=self.register)
+
+    def show_images(self):
+        # If the user is not logged in it will raise an exception
+
+        for i in range(20):
+            new_frame = tk.Frame(self.canvas, background="#454545")
+            self.canvas.create_window((0, i * 70),
+                                      window=new_frame,
+                                      anchor=tk.CENTER,
+                                      width=300)
+            tk.Label(new_frame,
+                     text="La pinga de la ponga",
+                     background="#454545",
+                     foreground="#ffffff").pack(side=tk.LEFT, padx=10, pady=10)
+
+    def refresh(self):
+        for w in self.winfo_children():
+            w.destroy()
+        self.initiate_main_display()
+
+    def login(self):
+        LoginWindow(self.app)
+
+    def register(self):
+        pass
