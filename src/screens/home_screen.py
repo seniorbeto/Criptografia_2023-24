@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 from PIL import Image, ImageTk
 from .login_toplevel import LoginWindow
+from .register_toplevel import RegisterWindow
 
 class HomeScreen(tk.Frame):
     def __init__(self, app):
@@ -73,4 +74,4 @@ class HomeScreen(tk.Frame):
         LoginWindow(self.app)
 
     def register(self):
-        pass
+        RegisterWindow(self.app)
