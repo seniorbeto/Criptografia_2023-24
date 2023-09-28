@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 from screens.home_screen import HomeScreen
 from screens.user_screen import UserScreen
-from api import ServerAPI
+from packages.api import ServerAPI
 from packages.server import Server
 
 class App():

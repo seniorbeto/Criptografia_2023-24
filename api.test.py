@@ -1,5 +1,5 @@
 import unittest
-from src.api import ServerAPI
+from src.packages.api import ServerAPI
 import datetime
 from freezegun import freeze_time
 import os
@@ -55,7 +55,7 @@ class TestServerAPI(unittest.TestCase):
         self.api.upload_photo("test.png")
         self.api.logout()
     
-    
+
 
 if __name__ == '__main__':
     unittest.main()
