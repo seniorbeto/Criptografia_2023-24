@@ -141,7 +141,7 @@ class Server():
             num (int): number of images to return
             author (str, optional): name of the  owner. Defaults to None.
             date_time (str, optional): date and time of the image. Defaults to None.
-                format: YYYY/MM/DD HH:MM:SS 
+                format: "%Y/%m/%d" HH_MM_SS 
         Returns:
             list: list of images
         """
@@ -153,7 +153,8 @@ class Server():
         
         if author is not None and date is not None:
             return self.__get_images_from_date(author, date, time, num)
-
+        if author is None and date is not None:
+            raise ValueError("Date must be specified with author")
 
         elif author is not None:
             return self.__get_images_from_author(author, num)

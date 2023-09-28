@@ -7,15 +7,21 @@ class ServerAPI():
         self.password = None
         self.server = Server()
 
-    def get_images(self, num: int, author: str | None = None, 
-                   time:str | None = None, date:str | None = None) -> list:
+    def get_images(self, num: int, time:str | None = None, date:str | None = None) -> list:
         """Returns a list of images from the given camera
         Args:
             num (int): number of images to return
             author (str, optional): name of the camera owner. Defaults to None.
+            date (str, optional): date of the images. Defaults to None.ç
+                format: "%Y/%m/%d"
         Returns:
             list: list of images
         """
+        if date is not None:
+            author = self.username
+        else:
+            author = None
+        
         return self.server.get_images(num=num, author=author, date = date, time = time)
     
     def register(self, name: str, password: str) -> None:
