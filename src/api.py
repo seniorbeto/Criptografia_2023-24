@@ -7,7 +7,8 @@ class ServerAPI():
         self.password = None
         self.server = Server()
 
-    def get_images(self, num: int, time:str | None = None, date:str | None = None) -> list:
+    def get_images(self, num: int, date:str | None = None,
+                   time: str | None = None) -> list:
         """Returns a list of images from the given camera
         Args:
             num (int): number of images to return
@@ -17,11 +18,13 @@ class ServerAPI():
         Returns:
             list: list of images
         """
+        author = None
         if date is not None:
             author = self.username
-        else:
-            author = None
-        
+        if time is not None:
+            if date is None:
+                raise Exception("Date must be specified if time is specified")
+
         return self.server.get_images(num=num, author=author, date = date, time = time)
     
     def register(self, name: str, password: str) -> None:
