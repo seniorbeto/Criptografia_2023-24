@@ -1,4 +1,4 @@
-from packages.server import Server
+from .packages.server import Server
 from PIL import Image
 
 class ServerAPI():
@@ -7,7 +7,8 @@ class ServerAPI():
         self.password = None
         self.server = Server()
 
-    def get_images(self, num: int, author: str | None = None, camera: str | None=None) -> list:
+    def get_images(self, num: int, author: str | None = None, 
+                   time:str | None = None, date:str | None = None) -> list:
         """Returns a list of images from the given camera
         Args:
             num (int): number of images to return
@@ -15,30 +16,15 @@ class ServerAPI():
         Returns:
             list: list of images
         """
-        return self.server.get_images(num, author, camera)
+        return self.server.get_images(num=num, author=author, date = date, time = time)
     
-    def create_camera(self, name: str, owner_name: str) -> None:
-        """Creates a new camera
-        Args:
-            name (str): name of the camera
-            author (str): name of the camera owner
-        """
-        return self.server.create_camera(name, owner_name)
-    
-    def remove_camera(self, name: str):
-        """Removes a camera
-        Args:
-            name (str): name of the camera
-            author (str): name of the camera owner
-        """
-        return self.server.remove_camera(name, self.username)
-    
-    def create_user(self, name: str, password: str) -> None:
+    def register(self, name: str, password: str) -> None:
         """Creates a new user
         Args:
             name (str): name of the user
             password (str): password of the user
         """
+        # TODO
         return self.server.create_user(name, password)
 
     def logout(self):
@@ -72,7 +58,7 @@ class ServerAPI():
         else:
             raise Exception("User or password incorrect")
 
-    def upload_photo(self, path: str, camera: str, author: str) -> None:
+    def upload_photo(self, path: str) -> None:
         """Uploads a photo to the server
         Args:
             path (str): path to the image MUST BE A PNG
@@ -87,5 +73,7 @@ class ServerAPI():
             image = Image.open(path)
         except:
             raise Exception("Image could not be opened check path and format")
-
-        return self.server.store_image(image, camera, author)
+        # encrypt image
+        # TODO
+        # upload image
+        return self.server.store_image(image, self.username)
