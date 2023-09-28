@@ -1,16 +1,22 @@
 from .user import User
-from .camera import Camera
 import json
 import os
 import random
 from PIL import Image, PngImagePlugin
-from time import time
+from datetime import datetime
 
 class Server():
     def __init__(self) -> None:
         self.__path = os.path.dirname(os.path.abspath(__file__)) # path to this file
         self.__users = self.__get_users() # list of users
-        self.__cameras = self.__get_cameras() # list of cameras
+        self.__create_directories()
+
+    def __create_directories(self) -> None:
+        """Creates the directories needed for the server to work
+        """
+        # create directories if they dont exist
+        os.makedirs(f"{self.__path}/data", exist_ok=True)
+        os.makedirs(f"{self.__path}/data/images", exist_ok=True)
 
     def __get_users(self) -> list:
         """Returns the list of users
@@ -27,21 +33,6 @@ class Server():
             users = []
         return users
 
-    def __get_cameras(self) -> list:
-        """Returns the list of cameras
-        Returns:
-            list: list of cameras
-        """
-        try:
-            with open(f"{self.__path}/data/cameras.json", "r") as file:
-                cameras_data = json.load(file)
-                # convert data to Camera objects
-                cameras = [Camera(**camera_data) for camera_data in cameras_data]
-
-        except:
-            cameras = []
-        return cameras
-
     def __remove_user(self, user: User) -> None:
         """Removes the given user
         Args:
@@ -56,57 +47,6 @@ class Server():
         users_data = [user.__dict__() for user in self.__users]
         with open(f"{self.__path}/data/users.json", "w") as file:
             json.dump(users_data, file, indent=4)
-                      
-    def __update_cameras_json(self):
-        """Updates the json file with the current cameras
-        """
-        cameras_data = [camera.__dict__() for camera in self.__cameras]
-        with open(f"{self.__path}/data/cameras.json", "w") as file:
-            json.dump(cameras_data, file, indent=4)
-    
-    def __remove_camera(self, camera: Camera) -> None:
-        """Removes the given camera
-        Args:
-            camera (Camera): camera to be removed
-        """
-        self.__cameras.remove(camera)
-        self.__update_cameras_json()
-
-    def create_camera(self, name: str, owner_name:str ) -> None:
-        # check if owner is valid
-        owner = None
-        for user in self.__users:
-            if user.name == owner_name:
-                owner = user
-                break
-        if owner == None:
-            raise ValueError("Owner not found")
-        # check if camera exists
-        for camera in self.__cameras:
-            if camera.name == name and camera.owner == owner.name:
-                raise ValueError("Camera already exists")
-
-        # create camera
-        camera = Camera(name = name, owner = owner_name)
-        self.__cameras.append(camera)
-        # write in file
-        self.__update_cameras_json()
-
-    def remove_camera(self, name: str, owner_name: str) -> None:
-        # check if owner is valid
-        owner = None
-        for user in self.__users:
-            if user.name == owner_name:
-                owner = user
-                break
-        if owner == None:
-            raise ValueError("Owner not found")
-        # check if camera exists
-        for camera in self.__cameras:
-            if camera.name == name and camera.owner == owner.name:
-                self.__remove_camera(camera)
-                return
-        raise ValueError("Camera not found")
 
     def create_user(self, name, password) -> None:
         """Creates a new user with the given name and password
@@ -147,31 +87,27 @@ class Server():
                     raise ValueError("Wrong password")
         raise ValueError("User not found")
 
-    def store_image(self, image: Image, camera_name, owner_name):
+    def store_image(self, image: Image, user_name):
         """ Stores the image in the server, IMAGE FORMAT: PNG
         Args:
             image_path (str): path to the image 
             camera_name (str): name of the camera
-            owner_name (str): name of the owner
+            user_name (str): name of the owner
         """
-        date = int(time())
+        if user_name == "" or user_name is None:
+            raise ValueError("User cannot be empty")
+
+        now = datetime.now()
+        date = now.strftime("%Y/%m/%d")
+        time = now.strftime("%H_%M_%S")
         # check if owner is valid
         owner = None
         for user in self.__users:
-            if user.name == owner_name:
+            if user.name == user_name:
                 owner = user
                 break
         if owner == None:
             raise ValueError("Owner not found")
-            
-
-        # check if camera exists
-        
-        for camera in self.__cameras:
-            if camera.name == camera_name and camera.owner == owner.name:
-                break
-        else:
-            raise ValueError("Camera not found")
         
         # chekc  tags #TODO
         pass
@@ -188,10 +124,9 @@ class Server():
         for key, value in image.info.items():
             info.add_text(str(key), str(value))
         # add new metadata
-        info.add_text("owner", owner_name)
-        info.add_text("camera", camera_name)
+        info.add_text("owner", user_name)
         info.add_text("tag", "123456789")
-        dest = f"{self.__path}/data/images/{owner_name}/{camera_name}/{date}.png"
+        dest = f"{self.__path}/data/images/{user_name}/{date}/{time}.png"
         # create directories if they dont exist
         os.makedirs(os.path.dirname(dest), exist_ok=True)
 
@@ -199,23 +134,29 @@ class Server():
 
         print("Image stored with metadata: ", info)
 
-    def get_images(self, num: int, author: str | None = None, camera: str | None=None) -> list:
+    def get_images(self, num: int, author: str | None = None, date: str | None =None, time: str | None = None) -> list:
         """Returns a list of images from the given camera
         Args:
             num (int): number of images to return
-            author (str, optional): name of the camera owner. Defaults to None.
+            author (str, optional): name of the  owner. Defaults to None.
+            date_time (str, optional): date and time of the image. Defaults to None.
+                format: "%Y/%m/%d" HH_MM_SS 
         Returns:
             list: list of images
         """
+        if num <= 0 or num is None:
+            num = float("inf")
         users = [user.name for user in self.__users]
+        images = []
 
         if author is not None and author not in users:
             raise ValueError("Author not found")
-
-        images = []
-        if author is not None and camera is not None:
-            return self.__get_images_from_camera(author, camera, num)
         
+        if author is not None and date is not None:
+            return self.__get_images_from_date(author, date, time, num)
+        if author is None and date is not None:
+            raise ValueError("Date must be specified with author")
+
         elif author is not None:
             return self.__get_images_from_author(author, num)
 
@@ -229,64 +170,33 @@ class Server():
         Returns:
             list: list of images
         """
-        images = []
         # get random images from random users
-        for i in range(num):
-            # get random user that has taken a picture
-            author=None
-            while author is None:
-                user = random.choice(self.__users)
-                if user.name in os.listdir(f"{self.__path}/data/images"):
-                    author = user.name
 
-            # get random camera
-            author_cameras = os.listdir(f"{self.__path}/data/images/{author}")
-            camera = random.choice(author_cameras)
-            
-            # get random image from camera
-            images_path = f"{self.__path}/data/images/{author}/{camera}"
-            image = random.choice(os.listdir(images_path))
-            images.append(Image.open(f"{images_path}/{image}"))
 
-        return images
+        # get just the cameras that have taken a picture
+        # get paths of all images 
+        # path has format: data/images/author/YYYY/MM/DD/hh_mm_ss.png
+        images_paths = []
+        for user in self.__users:
+            years = os.listdir(f"{self.__path}/data/images/{user.name}")
+            for year in years:
+                months = os.listdir(f"{self.__path}/data/images/{user.name}/{year}")
+                for month in months:
+                    days = os.listdir(f"{self.__path}/data/images/{user.name}/{year}/{month}")
+                    for day in days:
+                        images_paths += [f"{self.__path}/data/images/{user.name}/{year}/{month}/{day}/{image}" for image in os.listdir(f"{self.__path}/data/images/{user.name}/{year}/{month}/{day}")]
         
-    def __get_images_from_camera(self, author: str, camera: str, num: int) -> list:
-        """Returns a list of images from the given camera
-        Args:
-            author (str): name of the author
-            camera (str): name of the camera
-            num (int): number of images to return if -1 returns all images
-        Returns:
-            list: list of images
-        """
-        if num == -1:
-            num = float("inf")
+        # get random images
+        num = min(num, len(images_paths))
         
-        # check if author exists
-        users = [user.name for user in self.__users]
-        if author not in users:
-            raise ValueError("Author not found")
-        # check if author has taken ANY picture = has a path with his name
-        if author not in os.listdir(f"{self.__path}/data/images"):
-            raise ValueError("Author has no pictures")
-        # check if camera exists
-        cameras = [camera.name for camera in self.__cameras]
-        if camera not in cameras:
-            raise ValueError("Camera not found")
-        # check if camera has taken ANY picture = has a path with its name
-        if camera not in os.listdir(f"{self.__path}/data/images/{author}"):
-            raise ValueError("Camera has no pictures")
-        
-        
+        choices = random.sample(images_paths, k=num)
+
         images = []
-        pictures = os.listdir(f"{self.__path}/data/images/{author}/{camera}")
-        for picture in pictures:
-            if len(images) >= num:
-                # there are enough pictures
-                return images
-            images.append(Image.open(f"{self.__path}/data/images/{author}/{camera}/{picture}"))
-        # there are less pictures than num requested
+        for choice in choices:
+            images.append(Image.open(choice))
+        
         return images
+        
 
     def __get_images_from_author(self, author: str, num: int) -> list:
         """Returns a list of images from the given author
@@ -307,53 +217,126 @@ class Server():
         if author not in os.listdir(f"{self.__path}/data/images"):
             raise ValueError("Author has no pictures")
         
-        images = []
-        # get all cameras from author
-        author_cameras = [camera for camera in self.__cameras if camera.owner == author]
-        # get all cameras from author that have taken a picture
-        cameras_with_photos = os.listdir(f"{self.__path}/data/images/{author}")
+        # get paths of all images
+        # path has format: data/images/author/YYYY/MM/DD/hh_mm_ss.png
+        images_paths = []
+        years = os.listdir(f"{self.__path}/data/images/{author}")
+        for year in years:
+            months = os.listdir(f"{self.__path}/data/images/{author}/{year}")
+            for month in months:
+                days = os.listdir(f"{self.__path}/data/images/{author}/{year}/{month}")
+                for day in days:
+                    images_paths += [f"{self.__path}/data/images/{author}/{year}/{month}/{day}/{image}" for image in os.listdir(f"{self.__path}/data/images/{author}/{year}/{month}/{day}")]
         
-        # get all cameras from author that have taken a picture and are in the cameras list
-        # this is to avoid cameras that have been deleted and still have a folder
-        cameras = [camera.name for camera in author_cameras if camera.name in cameras_with_photos]
+        # get random images
+        num = min(num, len(images_paths))
 
-        # get all pictures from all cameras
-        for camera in cameras:
-            pictures = os.listdir(f"{self.__path}/data/images/{author}/{camera}")
-            for picture in pictures:
-                if len(images) >= num:
-                    # there are enough pictures
-                    return images
-                images.append(Image.open(f"{self.__path}/data/images/{author}/{camera}/{picture}"))
-        # there are less pictures than num requested
+        choices = random.sample(images_paths, k=num)
+
+        images = []
+        for choice in choices:
+            images.append(Image.open(choice))
+        
         return images
 
-        # for debug
+    def __get_images_from_date(self, author: str, date: str, time:str = None, num: int = None) -> list:
+        """Returns a list of images from the given author and date
+        Args:
+            author (str): name of the author
+            date (str): date of the image - format: YYYY/MM/DD
+            time (str): time of the image - format: HH_MM_SS
+            num (int): number of images to return if -1 returns all images
+        Returns:
+            list: list of images
+        """
+        if num == -1:
+            num = float("inf")
+        
+        # check if author exists
+        users = [user.name for user in self.__users]
+        if author not in users:
+            raise ValueError("Author not found")
+        # check if author has taken ANY picture = has a path with his name
+        if author not in os.listdir(f"{self.__path}/data/images"):
+            raise ValueError("Author has no pictures")
+        
+        # get paths of all images
+        # path has format: data/images/author/YYYY/MM/DD/hh_mm_ss.png
+        images_paths = []
+
+        #try to get images from date
+
+        try:
+            images_paths += [f"{self.__path}/data/images/{author}/{date}/{image}" for image in os.listdir(f"{self.__path}/data/images/{author}/{date}")]
+
+        except:
+            # date not found
+            raise ValueError("Date not found")
+
+        # try to get images from time
+        if time is not None:
+            try:
+                return [Image.open(f"{self.__path}/data/images/{author}/{date}/{time}.png")]
+            except:
+                # time not found
+                raise ValueError("Time not found")
+        
+
+        # get random images
+        num = min(num, len(images_paths))
+
+        choices = random.sample(images_paths, k=num)
+
+        images = []
+        for choice in choices:
+            images.append(Image.open(choice))
+        
+        return images
+
+
     
     def delete_all_users(self):
         self.__users = []
         self.__update_users_json()
-    
-    # for debug
-    def delete_all_cameras(self):
-        self.__cameras = []
-        self.__update_cameras_json()
+
 
     def delete_all_images(self):
         """Removes directory with all images
         """
+        
         users = os.listdir(f"{self.__path}/data/images")
         for user in users:
-            cameras = os.listdir(f"{self.__path}/data/images/{user}")
-            for camera in cameras:
-                images = os.listdir(f"{self.__path}/data/images/{user}/{camera}")
-                for image in images:
-                    os.remove(f"{self.__path}/data/images/{user}/{camera}/{image}")
-                os.rmdir(f"{self.__path}/data/images/{user}/{camera}")
+            years = os.listdir(f"{self.__path}/data/images/{user}")
+            for year in years:
+                months = os.listdir(f"{self.__path}/data/images/{user}/{year}")
+                for month in months:
+                    days = os.listdir(f"{self.__path}/data/images/{user}/{year}/{month}")
+                    for day in days:
+                        images = os.listdir(f"{self.__path}/data/images/{user}/{year}/{month}/{day}")
+                        for image in images:
+                            os.remove(f"{self.__path}/data/images/{user}/{year}/{month}/{day}/{image}")
+                        os.rmdir(f"{self.__path}/data/images/{user}/{year}/{month}/{day}")
+                    os.rmdir(f"{self.__path}/data/images/{user}/{year}/{month}")
+                os.rmdir(f"{self.__path}/data/images/{user}/{year}")
             os.rmdir(f"{self.__path}/data/images/{user}")
-        os.makedirs(f"{self.__path}/data/images", exist_ok=True)
+        os.rmdir(f"{self.__path}/data/images")
 
     def clear_server(self):
         self.delete_all_users()
-        self.delete_all_cameras()
         self.delete_all_images()
+
+    def login(self, name: str, password: str) -> bool:
+        """Logs in a user
+        Args:
+            name (str): name of the user
+            password (str): password of the user
+        Returns:
+            bool: True if the user was logged in, False otherwise
+        """
+        for user in self.__users:
+            if user.name == name:
+                if user.password == password:
+                    return True
+                else:
+                    return False
+        return False
