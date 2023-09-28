@@ -1,4 +1,4 @@
-from packages.server import Server
+from .packages.server import Server
 from PIL import Image
 
 class ServerAPI():
@@ -7,7 +7,7 @@ class ServerAPI():
         self.password = None
         self.server = Server()
 
-    def get_images(self, num: int, date:str | None = None,
+    def get_images(self, num: int | None = -1, date:str | None = None,
                    time: str | None = None) -> list:
         """Returns a list of images from the given camera
         Args:

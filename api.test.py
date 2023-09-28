@@ -1,7 +1,8 @@
 import unittest
-from api import ServerAPI
+from src.api import ServerAPI
 import datetime
 from freezegun import freeze_time
+import os
 
 class TestServerAPI(unittest.TestCase):
     def setUp(self):
@@ -39,7 +40,22 @@ class TestServerAPI(unittest.TestCase):
     def test_upload_and_get_images(self):
         self.api.login("user1", "pass1")
         
-        # get images from 
+        # get images from  test_photos folder
+        day = 1
+        month = 1
+        for filename in os.listdir("test_photos"):
+            with freeze_time(f"2022-{month}-{day}"):
+                self.api.upload_photo("test_photos/" + filename)
+                day += 1
+                if day%3 == 0:
+                    month += 1
+        self.api.logout()
+
+        self.api.login("user2", "pass2")
+        self.api.upload_photo("test.png")
+        self.api.logout()
+    
+    
 
 if __name__ == '__main__':
     unittest.main()

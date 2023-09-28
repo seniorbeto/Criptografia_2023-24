@@ -145,6 +145,8 @@ class Server():
         Returns:
             list: list of images
         """
+        if num <= 0 or num is None:
+            num = float("inf")
         users = [user.name for user in self.__users]
         images = []
 
