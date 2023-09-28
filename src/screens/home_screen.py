@@ -2,6 +2,8 @@ import tkinter as tk
 from tkinter import ttk
 from PIL import Image, ImageTk
 from .login_toplevel import LoginWindow
+from .register_toplevel import RegisterWindow
+import platform
 
 class HomeScreen(tk.Frame):
     def __init__(self, app):
@@ -27,10 +29,21 @@ class HomeScreen(tk.Frame):
         self.canvas.bind("<Configure>", self.canvas_reconfigure)
 
         self.show_images()
-        self.canvas.bind_all("<MouseWheel>", self.on_mousewheel)
+        if platform.system() == "Windows" or platform.system() == "MacOS":
+            self.canvas.bind_all("<MouseWheel>", self.on_mousewheel)
+        else:
+            # Binding buttons are different in Linux
+            self.canvas.bind_all("<Button-4>", self.on_mousewheel_up)
+            self.canvas.bind_all("<Button-5>", self.on_mousewheel_down)
 
     def canvas_reconfigure(self, event):
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+
+    def on_mousewheel_up(self, event):
+        self.canvas.yview_scroll(-1, "units")
+
+    def on_mousewheel_down(self, event):
+        self.canvas.yview_scroll(1, "units")
 
     def on_mousewheel(self, event):
         self.canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
@@ -73,4 +86,4 @@ class HomeScreen(tk.Frame):
         LoginWindow(self.app)
 
     def register(self):
-        pass
+        RegisterWindow(self.app)
