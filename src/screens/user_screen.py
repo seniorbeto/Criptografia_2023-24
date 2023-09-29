@@ -67,7 +67,7 @@ class UserScreen(tk.Frame):
         self.app.showHomeScreen()
 
     def show_images(self):
-        self.images = self.app.api.get_images(date="2022/01/01") # Date is temporal until issue #15 is solved
+        self.images = self.app.api.get_images(date="2022") # Date is temporal until issue #15 is solved
         for i in range(len(self.images)):
             image = ImageTk.PhotoImage(self.images[i].resize((200, 200)))
             self.cache_images.append(image)

@@ -1,6 +1,7 @@
 from .user import User
 import json
 import os
+import re
 import random
 from PIL import Image, PngImagePlugin
 from datetime import datetime
@@ -264,14 +265,35 @@ class Server():
         # path has format: data/images/author/YYYY/MM/DD/hh_mm_ss.png
         images_paths = []
 
-        #try to get images from date
+        # In order to get images from date we need to check if the date given is only a year, a year and a month or a year, month and day
+        # We do that by converting the string into a tuple of ints whose length varies depending on the date given. For example,
+        # if the date given is 2021/05/12, the tuple will be (2021, 5, 12). If the date given is 2021/05, the tuple will be (2021, 5), etc.
+        new_date = self.__load_date(date)
+        if len(new_date) == 3:
+            try:
+                images_paths += [f"{self.__path}/data/images/{author}/{date}/{image}" for image in os.listdir(f"{self.__path}/data/images/{author}/{date}")]
+            except:
+                # date not found
+                raise ValueError("Date not found")
+        elif len(new_date) == 2:
+            try:
+                days = os.listdir(f"{self.__path}/data/images/{author}/{new_date[0]}/{new_date[1]}")
+                for day in days:
+                    images_paths += [f"{self.__path}/data/images/{author}/{new_date[0]}/{new_date[1]}/{day}/{image}" for image in os.listdir(f"{self.__path}/data/images/{author}/{new_date[0]}/{new_date[1]}/{day}")]
+            except:
+                # date not found
+                raise ValueError("Date not found")
+        elif len(new_date) == 1:
+            try:
+                months = os.listdir(f"{self.__path}/data/images/{author}/{new_date[0]}")
+                for month in months:
+                    days = os.listdir(f"{self.__path}/data/images/{author}/{new_date[0]}/{month}")
+                    for day in days:
+                        images_paths += [f"{self.__path}/data/images/{author}/{new_date[0]}/{month}/{day}/{image}" for image in os.listdir(f"{self.__path}/data/images/{author}/{new_date[0]}/{month}/{day}")]
+            except:
+                # date not found
+                raise ValueError("Date not found")
 
-        try:
-            images_paths += [f"{self.__path}/data/images/{author}/{date}/{image}" for image in os.listdir(f"{self.__path}/data/images/{author}/{date}")]
-
-        except:
-            # date not found
-            raise ValueError("Date not found")
 
         # try to get images from time
         if time is not None:
@@ -293,7 +315,15 @@ class Server():
         
         return images
 
+    def __load_date(self, date: str) -> tuple[int, int, int]:
+        """
+        Loads a date from a string with format YYYY/MM/DD and converts it to a tuple of ints
+        """
+        pattern = r'^(\d{4})(/(\d{2})(/(\d{2}))?)?$'
+        if not re.match(pattern, date):
+            raise ValueError("Invalid date format")
 
+        return tuple(date.split("/"))
     
     def delete_all_users(self):
         self.__users = []
