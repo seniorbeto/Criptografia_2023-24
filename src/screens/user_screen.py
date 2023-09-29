@@ -1,10 +1,12 @@
 import tkinter as tk
 from PIL import Image, ImageTk
+import platform
 
 class UserScreen(tk.Frame):
     def __init__(self, app):
         super().__init__(app.root, background="#212121")
         self.app = app
+        self.cache_images = []
 
     def initiate_main_display(self):
         # First, if the frame is not empty, we destroy all the widgets
@@ -65,11 +67,9 @@ class UserScreen(tk.Frame):
         self.app.showHomeScreen()
 
     def show_images(self):
-        self.images = self.app.api.get_images()
-        self.image_frames = []
+        self.images = self.app.api.get_images(date="2022/01/01") # Date is temporal until issue #15 is solved
         for i in range(len(self.images)):
-            self.iamges[i].show()
-            image = ImageTk.PhotoImage(self.images[i])
+            image = ImageTk.PhotoImage(self.images[i].resize((200, 200)))
+            self.cache_images.append(image)
             image_label = tk.Label(self.canvas, image=image)
             self.canvas.create_window((0, i * 70), window=image_label, anchor="nw")
-            self.image_frames.append(frame)
