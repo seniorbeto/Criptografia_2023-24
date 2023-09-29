@@ -109,10 +109,10 @@ class Server():
         for key, value in image.info.items():
             info.add_text(str(key), str(value))
         # add new metadata
-        info.add_text("sample tag", 1234)
+        info.add_text("sample tag", "1234")
         
         # store image
-        self.__sm.store_img(image, user_name, info)
+        self.__sm.storage_img(image, user_name, info)
     
 
     def get_images(self, num: int, author: str | None = None, date: str | None =None, time: str | None = None) -> list:

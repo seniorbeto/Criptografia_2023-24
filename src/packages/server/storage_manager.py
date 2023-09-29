@@ -96,13 +96,13 @@ class StorageManager():
         images_paths = []
         users = os.listdir(f"{self.__path}/data/images")
         for user in users:
-            years = os.listdir(f"{self.__path}/data/images/{user.name}")
+            years = os.listdir(f"{self.__path}/data/images/{user}")
             for year in years:
-                months = os.listdir(f"{self.__path}/data/images/{user.name}/{year}")
+                months = os.listdir(f"{self.__path}/data/images/{user}/{year}")
                 for month in months:
-                    days = os.listdir(f"{self.__path}/data/images/{user.name}/{year}/{month}")
+                    days = os.listdir(f"{self.__path}/data/images/{user}/{year}/{month}")
                     for day in days:
-                        images_paths += [f"{self.__path}/data/images/{user.name}/{year}/{month}/{day}/{image}" for image in os.listdir(f"{self.__path}/data/images/{user.name}/{year}/{month}/{day}")]
+                        images_paths += [f"{self.__path}/data/images/{user}/{year}/{month}/{day}/{image}" for image in os.listdir(f"{self.__path}/data/images/{user}/{year}/{month}/{day}")]
         
         # get random images
         num = min(num, len(images_paths))
