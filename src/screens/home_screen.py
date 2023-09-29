@@ -15,6 +15,8 @@ class HomeScreen(tk.Frame):
         # First, if the frame is not empty, we destroy all the widgets
         for w in self.winfo_children():
             w.destroy()
+
+        self.app.root.title("Home")
         # Then, we create the main menu
         self.create_main_menu()
         # We create a canvas to put the scrollbar in it

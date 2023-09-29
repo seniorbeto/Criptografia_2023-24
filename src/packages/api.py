@@ -65,7 +65,7 @@ class ServerAPI():
             self.username = name
             self.password = password
         else:
-            raise Exception("User or password incorrect")
+            raise ValueError("User or password incorrect")
 
     def upload_photo(self, path: str) -> None:
         """Uploads a photo to the server
