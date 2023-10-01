@@ -82,7 +82,7 @@ class UserScreen(tk.Frame):
             self.cache_images.append(image)
             image_label = tk.Label(self.canvas, image=image)
             image_label.bind("<Button-3>", self.show_context_menu)
-            if i%3 == 0:
+            if i != 0 and i%3 == 0:
                 y += 200
             self.canvas.create_window(((i%3)*200, y), window=image_label, anchor="nw")
 
