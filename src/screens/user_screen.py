@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import filedialog
 from PIL import Image, ImageTk
 import platform
+from packages.server.ImgPackage import ImgPackage
 
 class UserScreen(tk.Frame):
     def __init__(self, app):
@@ -78,7 +79,7 @@ class UserScreen(tk.Frame):
         self.images = self.app.api.get_images()
         y = 0
         for i in range(len(self.images)):
-            image = ImageTk.PhotoImage(self.images[i].resize((200, 200)))
+            image = ImageTk.PhotoImage(self.images[i].image.resize((200, 200)))
             self.cache_images.append(image)
             image_label = tk.Label(self.canvas, image=image)
             image_label.bind("<Button-3>", lambda event, img=self.cache_images[i]: self.show_context_menu(event, img))

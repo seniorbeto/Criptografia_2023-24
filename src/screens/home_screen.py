@@ -70,7 +70,7 @@ class HomeScreen(tk.Frame):
         self.images = self.app.api.get_images(username="@all")
         y = 0
         for i in range(len(self.images)):
-            image = ImageTk.PhotoImage(self.images[i].resize((200, 200)))
+            image = ImageTk.PhotoImage(self.images[i].image.resize((200, 200)))
             self.cache_images.append(image)
             image_label = tk.Label(self.canvas, image=image)
             if i != 0 and i % 3 == 0:

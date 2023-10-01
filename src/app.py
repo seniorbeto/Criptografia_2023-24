@@ -4,6 +4,7 @@ from screens.home_screen import HomeScreen
 from screens.user_screen import UserScreen
 from packages.api import ServerAPI
 from packages.server import Server
+from packages.server.ImgPackage import ImgPackage
 
 class App():
     def __init__(self):

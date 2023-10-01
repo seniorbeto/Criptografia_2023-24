@@ -159,6 +159,7 @@ class StorageManager():
                 days = os.listdir(f"{self.__path}/data/images/{username}/{year}/{month}")
                 for day in days:
                     for time in os.listdir(f"{self.__path}/data/images/{username}/{year}/{month}/{day}"):
+                        time = time.replace(".png", "")
                         images_paths.append({"date":f"{year}/{month}/{day}", "time":time, "path": f"{self.__path}/data/images/{username}/{year}/{month}/{day}/{time}.png"})
 
         
