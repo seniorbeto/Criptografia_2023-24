@@ -154,12 +154,5 @@ def test_seach_img_by_date():
         api.logout()
 
 
-def search_without_pictures():
-    api = ServerAPI()
-    api.server.clear_server()
-    api.register("test", "test")
-    api.login("test", "test")
-    images = api.get_images(2, date="2022/01/01", time= "00_00_00")
-    print("IMAGES FROM test ", images)
-
-search_without_pictures()
+if __name__ == '__main__':
+    unittest.main()
