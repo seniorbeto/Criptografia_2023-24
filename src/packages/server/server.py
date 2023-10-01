@@ -152,4 +152,5 @@ class Server():
         # REMOVE AFTER TESTING
         self.__sm.delete_all_images()
         self.__sm.delete_all_users()
+        self.__sm.create_directories()
         print("Server cleared")
