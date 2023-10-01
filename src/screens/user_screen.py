@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import filedialog
 from PIL import Image, ImageTk
 import platform
 
@@ -70,7 +71,7 @@ class UserScreen(tk.Frame):
         self.app.showHomeScreen()
 
     def show_images(self):
-        self.images = self.app.api.get_images(date="2022") # Date is temporal until issue #15 is solved
+        self.images = self.app.api.get_images()
         y = 0
         for i in range(len(self.images)):
             image = ImageTk.PhotoImage(self.images[i].resize((200, 200)))
@@ -80,4 +81,8 @@ class UserScreen(tk.Frame):
                 y += 200
             self.canvas.create_window(((i%3)*200, y), window=image_label, anchor="nw")
 
-    def add_image(self):...
+    def add_image(self):
+        filepath = filedialog.askopenfilename(title="Select file", filetypes=(("png files", "*.png"), ("all files", "*.*")))
+        if filepath:
+            self.app.api.upload_photo(filepath)
+            self.initiate_main_display() # Refresh
