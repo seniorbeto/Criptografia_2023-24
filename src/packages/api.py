@@ -12,7 +12,9 @@ class ServerAPI():
         """Returns a list of images from the given camera
         Args:
             num (int): number of images to return
-            author (str, optional): name of the camera owner. Defaults to None.
+            author (str, optional): name of the camera owner.
+                - None it will return all the images from the logged user.
+                - "@all" it will return all the images from all the users.
             date (str, optional): date of the images. Defaults to None.ç
                 format: "%Y/%m/%d"
 
