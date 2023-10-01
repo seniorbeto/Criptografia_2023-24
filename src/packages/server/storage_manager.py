@@ -2,6 +2,7 @@ import os
 import json
 from .user import User
 from PIL import Image
+from .ImgPackage import ImgPackage
 from datetime import datetime
 import random
 import re
@@ -109,6 +110,7 @@ class StorageManager():
         # get paths of all images 
         # path has format: data/images/username/YYYY/MM/DD/hh_mm_ss.png
         images_paths = []
+
         users = os.listdir(f"{self.__path}/data/images")
         for user in users:
             years = os.listdir(f"{self.__path}/data/images/{user}")
@@ -117,7 +119,9 @@ class StorageManager():
                 for month in months:
                     days = os.listdir(f"{self.__path}/data/images/{user}/{year}/{month}")
                     for day in days:
-                        images_paths += [f"{self.__path}/data/images/{user}/{year}/{month}/{day}/{image}" for image in os.listdir(f"{self.__path}/data/images/{user}/{year}/{month}/{day}")]
+                        for time in os.listdir(f"{self.__path}/data/images/{user}/{year}/{month}/{day}"):
+                            time = time.replace(".png", "")
+                            images_paths.append({"user": user, "date":f"{year}/{month}/{day}", "time":time, "path": f"{self.__path}/data/images/{user}/{year}/{month}/{day}/{time}.png"})
         
         # get random images
         num = min(num, len(images_paths)-1)
@@ -126,9 +130,8 @@ class StorageManager():
 
         images = []
         for choice in choices:
-            img = Image.open(choice)
-            images.append(img.copy())
-            img.close()
+            img = ImgPackage(author=choice["user"], date=choice["date"], time=choice["time"], path=choice["path"])
+            images.append(img)
         return images
         
 
@@ -155,7 +158,9 @@ class StorageManager():
             for month in months:
                 days = os.listdir(f"{self.__path}/data/images/{username}/{year}/{month}")
                 for day in days:
-                    images_paths += [f"{self.__path}/data/images/{username}/{year}/{month}/{day}/{image}" for image in os.listdir(f"{self.__path}/data/images/{username}/{year}/{month}/{day}")]
+                    for time in os.listdir(f"{self.__path}/data/images/{username}/{year}/{month}/{day}"):
+                        images_paths.append({"date":f"{year}/{month}/{day}", "time":time, "path": f"{self.__path}/data/images/{username}/{year}/{month}/{day}/{time}.png"})
+
         
         # get random images
         num = min(num, len(images_paths)-1)
@@ -164,10 +169,8 @@ class StorageManager():
 
         images = []
         for choice in choices:
-            img = Image.open(choice)
-            images.append(img.copy())
-            img.close()
-        
+            img = ImgPackage(author=username, date=choice["date"], time=choice["time"], path=choice["path"])
+            images.append(img)
         return images
 
     def __get_images_from_date(self, username: str, date: str, time:str = None, num: int = None) -> list:
@@ -191,13 +194,23 @@ class StorageManager():
         # path has format: data/images/username/YYYY/MM/DD/hh_mm_ss.png
         images_paths = []
 
-        # In order to get images from date we need to check if the date given is only a year, a year and a month or a year, month and day
-        # We do that by converting the string into a tuple of ints whose length varies depending on the date given. For example,
-        # if the date given is 2021/05/12, the tuple will be (2021, 5, 12). If the date given is 2021/05, the tuple will be (2021, 5), etc.
+        
+        # try to get images from time
+        if time is not None:
+            try:
+                return [Image.open(f"{self.__path}/data/images/{username}/{date}/{time}.png")]
+            except:
+                # time not found
+                return []
+
         new_date = self.__load_date(date)
         if len(new_date) == 3:
             try:
-                images_paths += [f"{self.__path}/data/images/{username}/{date}/{image}" for image in os.listdir(f"{self.__path}/data/images/{username}/{date}")]
+                for image in os.listdir(f"{self.__path}/data/images/{username}/{new_date[0]}/{new_date[1]}/{new_date[2]}/"):
+                    img_time = image.replace(".png", "")
+                    images_paths.append({"date":f"{new_date[0]}/{new_date[1]}/{new_date[2]}", 
+                                         "time": img_time, 
+                                         "path": f"{self.__path}/data/images/{username}/{new_date[0]}/{new_date[1]}/{new_date[2]}/{time}.png"})
             except:
                 # date not found
                 return []
@@ -205,7 +218,11 @@ class StorageManager():
             try:
                 days = os.listdir(f"{self.__path}/data/images/{username}/{new_date[0]}/{new_date[1]}")
                 for day in days:
-                    images_paths += [f"{self.__path}/data/images/{username}/{new_date[0]}/{new_date[1]}/{day}/{image}" for image in os.listdir(f"{self.__path}/data/images/{username}/{new_date[0]}/{new_date[1]}/{day}/")]
+                    for image in os.listdir(f"{self.__path}/data/images/{username}/{new_date[0]}/{new_date[1]}/{day}"):
+                        img_time = image.replace(".png", "")
+                        images_paths.append({"date":f"{new_date[0]}/{new_date[1]}/{day}", 
+                                             "time":img_time, 
+                                             "path": f"{self.__path}/data/images/{username}/{new_date[0]}/{new_date[1]}/{day}/{time}.png"})
             except:
                 # date not found
                 return []
@@ -215,20 +232,14 @@ class StorageManager():
                 for month in months:
                     days = os.listdir(f"{self.__path}/data/images/{username}/{new_date[0]}/{month}")
                     for day in days:
-                        images_paths += [f"{self.__path}/data/images/{username}/{new_date[0]}/{month}/{day}/{image}" for image in os.listdir(f"{self.__path}/data/images/{username}/{new_date[0]}/{month}/{day}")]
+                        for image in os.listdir(f"{self.__path}/data/images/{username}/{new_date[0]}/{month}/{day}"):
+                            img_time = image.replace(".png", "")
+                            images_paths.append({"date":f"{new_date[0]}/{month}/{day}", 
+                                                 "time":img_time, 
+                                                 "path": f"{self.__path}/data/images/{username}/{new_date[0]}/{month}/{day}/{time}.png"})    
             except:
                 # date not found
-                return []
-
-
-        # try to get images from time
-        if time is not None:
-            try:
-                return [Image.open(f"{self.__path}/data/images/{username}/{date}/{time}.png")]
-            except:
-                # time not found
-                return []
-        
+                return []        
 
         # get random images
         num = min(num, len(images_paths)-1)
@@ -237,10 +248,8 @@ class StorageManager():
 
         images = []
         for choice in choices:
-            img = Image.open(choice)
-            images.append(img.copy())
-            img.close()
-        
+            img =ImgPackage(author=username, date = choice["date"], time=choice["time"], path=choice["path"] )
+            images.append(img)
         return images
 
     def __load_date(self, date: str) -> tuple[int, int, int]:
