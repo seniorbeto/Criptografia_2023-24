@@ -124,7 +124,7 @@ class StorageManager():
                             images_paths.append({"user": user, "date":f"{year}/{month}/{day}", "time":time, "path": f"{self.__path}/data/images/{user}/{year}/{month}/{day}/{time}.png"})
         
         # get random images
-        num = min(num, len(images_paths)-1)
+        num = min(num, len(images_paths))
         
         choices = random.sample(images_paths, k=num)
 
@@ -164,7 +164,7 @@ class StorageManager():
 
         
         # get random images
-        num = min(num, len(images_paths)-1)
+        num = min(num, len(images_paths))
 
         choices = random.sample(images_paths, k=num)
 
@@ -243,7 +243,7 @@ class StorageManager():
                 return []        
 
         # get random images
-        num = min(num, len(images_paths)-1)
+        num = min(num, len(images_paths))
 
         choices = random.sample(images_paths, k=num)
 
@@ -282,6 +282,12 @@ class StorageManager():
             # image not found
             raise ValueError("Image not found")
         
+        path = os.path.dirname(path)
+        if os.path.exists(path):
+            while os.path.exists(path) and not os.listdir(path):
+                os.rmdir(path)
+                print(f"removed dir: {path}")
+                path = os.path.dirname(path)
     
     def delete_all_users(self):
         # REMOVE AFTER TESTING
