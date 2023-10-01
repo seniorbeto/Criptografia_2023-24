@@ -8,7 +8,7 @@ class UserScreen(tk.Frame):
     def __init__(self, app):
         super().__init__(app.root, background="#212121")
         self.app = app
-        self.cache_images = []
+        self.cache_images = {}
 
     def initiate_main_display(self):
         # First, if the frame is not empty, we destroy all the widgets
@@ -80,9 +80,9 @@ class UserScreen(tk.Frame):
         y = 0
         for i in range(len(self.images)):
             image = ImageTk.PhotoImage(self.images[i].image.resize((200, 200)))
-            self.cache_images.append(image)
+            self.cache_images[image] = self.images[i]
             image_label = tk.Label(self.canvas, image=image)
-            image_label.bind("<Button-3>", lambda event, img=self.cache_images[i]: self.show_context_menu(event, img))
+            image_label.bind("<Button-3>", lambda event, img=self.images[i]: self.show_context_menu(event, img))
             if i != 0 and i%3 == 0:
                 y += 210
             self.canvas.create_window(((i%3)*210, y), window=image_label, anchor="nw")
@@ -94,4 +94,5 @@ class UserScreen(tk.Frame):
             self.initiate_main_display() # Refresh
 
     def delete_image(self, img):
-        print(img)
+        self.app.api.remove_image(img.date, img.time)
+        self.initiate_main_display() # Refresh
