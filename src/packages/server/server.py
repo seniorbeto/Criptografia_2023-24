@@ -1,53 +1,29 @@
 from .user import User
-import json
-import os
-import re
-import random
 from PIL import Image, PngImagePlugin
-from datetime import datetime
+from .storage_manager import StorageManager
 
 class Server():
     def __init__(self) -> None:
-        self.__path = os.path.dirname(os.path.abspath(__file__)) # path to this file
-        self.__users = self.__get_users() # list of users
-        self.__create_directories()
-
-    def __create_directories(self) -> None:
-        """Creates the directories needed for the server to work
-        """
-        # create directories if they dont exist
-        os.makedirs(f"{self.__path}/data", exist_ok=True)
-        os.makedirs(f"{self.__path}/data/images", exist_ok=True)
+        self.__sm = StorageManager()
+        self.__sm.create_directories()
 
     def __get_users(self) -> list:
         """Returns the list of users
         Returns:
             list: list of users
         """
-        try:
-            with open(f"{self.__path}/data/users.json", "r") as file:
-                users_data = json.load(file)
-                # convert data to User objects
-                users = [User(**user_data) for user_data in users_data]
-        except:
-            print("Error reading users.json")
-            users = []
-        return users
+        return self.__sm.get_users()
 
     def __remove_user(self, user: User) -> None:
         """Removes the given user
         Args:
             user (User): user to be removed
         """
-        self.__users.remove(user)
-        self.__update_users_json()
+        users = self.__get_users()
+        users.remove(user)
+        self.__sm.update_users_json(users)
     
-    def __update_users_json(self):
-        """Updates the json file with the current users
-        """
-        users_data = [user.__dict__() for user in self.__users]
-        with open(f"{self.__path}/data/users.json", "w") as file:
-            json.dump(users_data, file, indent=4)
+
 
     def create_user(self, name, password) -> None:
         """Creates a new user with the given name and password
@@ -57,15 +33,15 @@ class Server():
         """
 
         # check if name is unique
-        for user in self.__users:
+        users = self.__get_users()
+        for user in users:
             if user.name == name:
                 raise ValueError("Name is already taken")
         # generate id for user, this is unique
 
-        user = User(name = name, password = password)
-        self.__users.append(user)
-        # write in file
-        self.__update_users_json()
+        users = self.__get_users()
+        users.append(User(name, password))
+        self.__sm.update_users_json(users)
         
     def remove_user(self, name: str, password: str):
         """Removes the user with the given name
@@ -78,8 +54,8 @@ class Server():
             raise ValueError("Name cannot be empty")
         elif password == "":
             raise ValueError("Password cannot be empty")
-        
-        for user in self.__users:
+        users = self.__get_users()
+        for user in users:
             if user.name == name:
                 if user.password == password:
                     self.__remove_user(user)
@@ -97,20 +73,21 @@ class Server():
         """
         if user_name == "" or user_name is None:
             raise ValueError("User cannot be empty")
+        if image is None:
+            raise ValueError("Image cannot be empty")
+        
 
-        now = datetime.now()
-        date = now.strftime("%Y/%m/%d")
-        time = now.strftime("%H_%M_%S")
         # check if owner is valid
         owner = None
-        for user in self.__users:
+        users = self.__get_users()
+        for user in users:
             if user.name == user_name:
                 owner = user
                 break
         if owner == None:
             raise ValueError("Owner not found")
         
-        # chekc  tags #TODO
+        # checK  tags #TODO
         pass
         # check signature #TODO
         pass
@@ -120,240 +97,35 @@ class Server():
         
         # dev and debug purposes
         image.load()
-        info = PngImagePlugin.PngInfo()
+
+        # META DATA
         # copy metadata from original image to new image
+        info = PngImagePlugin.PngInfo()
         for key, value in image.info.items():
             info.add_text(str(key), str(value))
         # add new metadata
-        info.add_text("owner", user_name)
-        info.add_text("tag", "123456789")
-        dest = f"{self.__path}/data/images/{user_name}/{date}/{time}.png"
-        # create directories if they dont exist
-        os.makedirs(os.path.dirname(dest), exist_ok=True)
+        info.add_text("sample tag", "1234")
+        
+        # store image
+        self.__sm.storage_img(image, user_name, info)
+    
 
-        image.save(dest, "PNG", pnginfo=info)
-
-        print("Image stored with metadata: ", info)
-
-    def get_images(self, num: int, author: str | None = None, date: str | None =None, time: str | None = None) -> list:
+    def get_images(self, num: int, username: str | None = None, date: str | None =None, time: str | None = None) -> list:
         """Returns a list of images from the given camera
         Args:
             num (int): number of images to return
             author (str, optional): name of the  owner. Defaults to None.
-            date_time (str, optional): date and time of the image. Defaults to None.
-                format: "%Y/%m/%d" HH_MM_SS 
+            date (str, optional): date of the images. Defaults to None.
+                format: "%Y/%m/%d"
+            time (str, optional): time of the images. Defaults to None.
+                format: HH_MM_SS
         Returns:
             list: list of images
         """
-        if num <= 0 or num is None:
-            num = float("inf")
-        users = [user.name for user in self.__users]
-        images = []
+        # CHECKS #TODO
 
-        if author is not None and author not in users:
-            raise ValueError("Author not found")
-        
-        if author is not None and date is not None:
-            return self.__get_images_from_date(author, date, time, num)
-        if author is None and date is not None:
-            raise ValueError("Date must be specified with author")
-
-        elif author is not None:
-            return self.__get_images_from_author(author, num)
-
-        else:
-            return self.__get_random_images(num)
-            
-    def __get_random_images(self, num: int) -> list:
-        """Returns a list of random images
-        Args:
-            num (int): number of images to return
-        Returns:
-            list: list of images
-        """
-        # get random images from random users
-
-
-        # get just the cameras that have taken a picture
-        # get paths of all images 
-        # path has format: data/images/author/YYYY/MM/DD/hh_mm_ss.png
-        images_paths = []
-        for user in self.__users:
-            years = os.listdir(f"{self.__path}/data/images/{user.name}")
-            for year in years:
-                months = os.listdir(f"{self.__path}/data/images/{user.name}/{year}")
-                for month in months:
-                    days = os.listdir(f"{self.__path}/data/images/{user.name}/{year}/{month}")
-                    for day in days:
-                        images_paths += [f"{self.__path}/data/images/{user.name}/{year}/{month}/{day}/{image}" for image in os.listdir(f"{self.__path}/data/images/{user.name}/{year}/{month}/{day}")]
-        
-        # get random images
-        num = min(num, len(images_paths))
-        
-        choices = random.sample(images_paths, k=num)
-
-        images = []
-        for choice in choices:
-            images.append(Image.open(choice))
-        
-        return images
-        
-
-    def __get_images_from_author(self, author: str, num: int) -> list:
-        """Returns a list of images from the given author
-        Args:
-            author (str): name of the author
-            num (int): number of images to return if -1 returns all images
-        Returns:
-            list: list of images
-        """
-        if num == -1:
-            num = float("inf")
-        
-        # check if author exists
-        users = [user.name for user in self.__users]
-        if author not in users:
-            raise ValueError("Author not found")
-        # check if author has taken ANY picture = has a path with his name
-        if author not in os.listdir(f"{self.__path}/data/images"):
-            raise ValueError("Author has no pictures")
-        
-        # get paths of all images
-        # path has format: data/images/author/YYYY/MM/DD/hh_mm_ss.png
-        images_paths = []
-        years = os.listdir(f"{self.__path}/data/images/{author}")
-        for year in years:
-            months = os.listdir(f"{self.__path}/data/images/{author}/{year}")
-            for month in months:
-                days = os.listdir(f"{self.__path}/data/images/{author}/{year}/{month}")
-                for day in days:
-                    images_paths += [f"{self.__path}/data/images/{author}/{year}/{month}/{day}/{image}" for image in os.listdir(f"{self.__path}/data/images/{author}/{year}/{month}/{day}")]
-        
-        # get random images
-        num = min(num, len(images_paths))
-
-        choices = random.sample(images_paths, k=num)
-
-        images = []
-        for choice in choices:
-            images.append(Image.open(choice))
-        
-        return images
-
-    def __get_images_from_date(self, author: str, date: str, time:str = None, num: int = None) -> list:
-        """Returns a list of images from the given author and date
-        Args:
-            author (str): name of the author
-            date (str): date of the image - format: YYYY/MM/DD
-            time (str): time of the image - format: HH_MM_SS
-            num (int): number of images to return if -1 returns all images
-        Returns:
-            list: list of images
-        """
-        if num == -1:
-            num = float("inf")
-        
-        # check if author exists
-        users = [user.name for user in self.__users]
-        if author not in users:
-            raise ValueError("Author not found")
-        # check if author has taken ANY picture = has a path with his name
-        if author not in os.listdir(f"{self.__path}/data/images"):
-            raise ValueError("Author has no pictures")
-        
-        # get paths of all images
-        # path has format: data/images/author/YYYY/MM/DD/hh_mm_ss.png
-        images_paths = []
-
-        # In order to get images from date we need to check if the date given is only a year, a year and a month or a year, month and day
-        # We do that by converting the string into a tuple of ints whose length varies depending on the date given. For example,
-        # if the date given is 2021/05/12, the tuple will be (2021, 5, 12). If the date given is 2021/05, the tuple will be (2021, 5), etc.
-        new_date = self.__load_date(date)
-        if len(new_date) == 3:
-            try:
-                images_paths += [f"{self.__path}/data/images/{author}/{date}/{image}" for image in os.listdir(f"{self.__path}/data/images/{author}/{date}")]
-            except:
-                # date not found
-                raise ValueError("Date not found")
-        elif len(new_date) == 2:
-            try:
-                days = os.listdir(f"{self.__path}/data/images/{author}/{new_date[0]}/{new_date[1]}")
-                for day in days:
-                    images_paths += [f"{self.__path}/data/images/{author}/{new_date[0]}/{new_date[1]}/{day}/{image}" for image in os.listdir(f"{self.__path}/data/images/{author}/{new_date[0]}/{new_date[1]}/{day}")]
-            except:
-                # date not found
-                raise ValueError("Date not found")
-        elif len(new_date) == 1:
-            try:
-                months = os.listdir(f"{self.__path}/data/images/{author}/{new_date[0]}")
-                for month in months:
-                    days = os.listdir(f"{self.__path}/data/images/{author}/{new_date[0]}/{month}")
-                    for day in days:
-                        images_paths += [f"{self.__path}/data/images/{author}/{new_date[0]}/{month}/{day}/{image}" for image in os.listdir(f"{self.__path}/data/images/{author}/{new_date[0]}/{month}/{day}")]
-            except:
-                # date not found
-                raise ValueError("Date not found")
-
-
-        # try to get images from time
-        if time is not None:
-            try:
-                return [Image.open(f"{self.__path}/data/images/{author}/{date}/{time}.png")]
-            except:
-                # time not found
-                raise ValueError("Time not found")
-        
-
-        # get random images
-        num = min(num, len(images_paths))
-
-        choices = random.sample(images_paths, k=num)
-
-        images = []
-        for choice in choices:
-            images.append(Image.open(choice))
-        
-        return images
-
-    def __load_date(self, date: str) -> tuple[int, int, int]:
-        """
-        Loads a date from a string with format YYYY/MM/DD and converts it to a tuple of ints
-        """
-        pattern = r'^(\d{4})(/(\d{2})(/(\d{2}))?)?$'
-        if not re.match(pattern, date):
-            raise ValueError("Invalid date format")
-
-        return tuple(date.split("/"))
-    
-    def delete_all_users(self):
-        self.__users = []
-        self.__update_users_json()
-
-
-    def delete_all_images(self):
-        """Removes directory with all images
-        """
-        
-        users = os.listdir(f"{self.__path}/data/images")
-        for user in users:
-            years = os.listdir(f"{self.__path}/data/images/{user}")
-            for year in years:
-                months = os.listdir(f"{self.__path}/data/images/{user}/{year}")
-                for month in months:
-                    days = os.listdir(f"{self.__path}/data/images/{user}/{year}/{month}")
-                    for day in days:
-                        images = os.listdir(f"{self.__path}/data/images/{user}/{year}/{month}/{day}")
-                        for image in images:
-                            os.remove(f"{self.__path}/data/images/{user}/{year}/{month}/{day}/{image}")
-                        os.rmdir(f"{self.__path}/data/images/{user}/{year}/{month}/{day}")
-                    os.rmdir(f"{self.__path}/data/images/{user}/{year}/{month}")
-                os.rmdir(f"{self.__path}/data/images/{user}/{year}")
-            os.rmdir(f"{self.__path}/data/images/{user}")
-        os.rmdir(f"{self.__path}/data/images")
-
-    def clear_server(self):
-        self.delete_all_users()
-        self.delete_all_images()
+        # get images
+        return self.__sm.get_images(num, username, date, time)
 
     def login(self, name: str, password: str) -> bool:
         """Logs in a user
@@ -363,10 +135,22 @@ class Server():
         Returns:
             bool: True if the user was logged in, False otherwise
         """
-        for user in self.__users:
+        # update users
+        users = self.__get_users()
+        
+        for user in users:
             if user.name == name:
                 if user.password == password:
                     return True
                 else:
                     return False
         return False
+
+    def clear_server(self):
+        """Clears the server
+        """
+        # REMOVE AFTER TESTING
+        self.__sm.delete_all_images()
+        self.__sm.delete_all_users()
+        self.__sm.create_directories()
+        print("Server cleared")
