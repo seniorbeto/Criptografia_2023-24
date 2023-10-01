@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import filedialog
 from PIL import Image, ImageTk
 import platform
 
@@ -48,6 +49,10 @@ class UserScreen(tk.Frame):
     def on_mousewheel(self, event):
         self.canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
 
+    def show_context_menu(self, event):
+        context_menu = tk.Menu(self, tearoff=0)
+        context_menu.add_command(label="Delete", command=self.delete_image)
+        context_menu.post(event.x_root, event.y_root)
 
     def display_main_menu(self):
         self.main_menu = tk.Menu(self.app.root)
@@ -70,14 +75,21 @@ class UserScreen(tk.Frame):
         self.app.showHomeScreen()
 
     def show_images(self):
-        self.images = self.app.api.get_images(date="2022") # Date is temporal until issue #15 is solved
+        self.images = self.app.api.get_images()
         y = 0
         for i in range(len(self.images)):
             image = ImageTk.PhotoImage(self.images[i].resize((200, 200)))
             self.cache_images.append(image)
             image_label = tk.Label(self.canvas, image=image)
-            if i%3 == 0:
+            image_label.bind("<Button-3>", self.show_context_menu)
+            if i != 0 and i%3 == 0:
                 y += 200
             self.canvas.create_window(((i%3)*200, y), window=image_label, anchor="nw")
 
-    def add_image(self):...
+    def add_image(self):
+        filepath = filedialog.askopenfilename(title="Select file", filetypes=(("png files", "*.png"), ("all files", "*.*")))
+        if filepath:
+            self.app.api.upload_photo(filepath)
+            self.initiate_main_display() # Refresh
+
+    def delete_image(self):...
