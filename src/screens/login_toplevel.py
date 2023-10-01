@@ -30,4 +30,5 @@ class LoginWindow(tk.Toplevel):
             self.app.showUserScreen()
             self.destroy()
         except ValueError as e:
+            print(e)
             messagebox.showerror("Error", "User or password incorrect")

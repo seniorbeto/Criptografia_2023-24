@@ -138,7 +138,7 @@ class StorageManager():
             num = float("inf")
         # check if username has taken ANY picture = has a path with his name
         if username not in os.listdir(f"{self.__path}/data/images"):
-            raise ValueError("username has no pictures")
+            return []
         
         # get paths of all images
         # path has format: data/images/username/YYYY/MM/DD/hh_mm_ss.png
@@ -177,7 +177,7 @@ class StorageManager():
         
         # check if username has taken ANY picture = has a path with his name
         if username not in os.listdir(f"{self.__path}/data/images"):
-            raise ValueError("username has no pictures")
+            return []
         
         # get paths of all images
         # path has format: data/images/username/YYYY/MM/DD/hh_mm_ss.png
@@ -192,7 +192,7 @@ class StorageManager():
                 images_paths += [f"{self.__path}/data/images/{username}/{date}/{image}" for image in os.listdir(f"{self.__path}/data/images/{username}/{date}")]
             except:
                 # date not found
-                raise ValueError("Date not found")
+                return []
         elif len(new_date) == 2:
             try:
                 days = os.listdir(f"{self.__path}/data/images/{username}/{new_date[0]}/{new_date[1]}")
@@ -200,7 +200,7 @@ class StorageManager():
                     images_paths += [f"{self.__path}/data/images/{username}/{new_date[0]}/{new_date[1]}/{day}/{image}" for image in os.listdir(f"{self.__path}/data/images/{username}/{new_date[0]}/{new_date[1]}/{day}/")]
             except:
                 # date not found
-                raise ValueError("Date not found")
+                return []
         elif len(new_date) == 1:
             try:
                 months = os.listdir(f"{self.__path}/data/images/{username}/{new_date[0]}")
@@ -210,7 +210,7 @@ class StorageManager():
                         images_paths += [f"{self.__path}/data/images/{username}/{new_date[0]}/{month}/{day}/{image}" for image in os.listdir(f"{self.__path}/data/images/{username}/{new_date[0]}/{month}/{day}")]
             except:
                 # date not found
-                raise ValueError("Date not found")
+                return []
 
 
         # try to get images from time
@@ -219,7 +219,7 @@ class StorageManager():
                 return [Image.open(f"{self.__path}/data/images/{username}/{date}/{time}.png")]
             except:
                 # time not found
-                raise ValueError("Time not found")
+                return []
         
 
         # get random images
