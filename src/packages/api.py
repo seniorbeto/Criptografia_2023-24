@@ -7,25 +7,29 @@ class ServerAPI():
         self.password = None
         self.server = Server()
 
-    def get_images(self, num: int | None = -1, date:str | None = None,
-                   time: str | None = None) -> list:
+    def get_images(self, num: int | None = -1, username: str | None = None, 
+                   date:str | None = None, time: str | None = None) -> list:
         """Returns a list of images from the given camera
         Args:
             num (int): number of images to return
             author (str, optional): name of the camera owner. Defaults to None.
             date (str, optional): date of the images. Defaults to None.ç
                 format: "%Y/%m/%d"
+
+            time (str, optional): time of the images. Defaults to None.
+                format: HH_MM_SS
         Returns:
             list: list of images
         """
-        author = None
+        if username is None:
+            username = self.username
         if date is not None:
             author = self.username
         if time is not None:
             if date is None:
                 raise Exception("Date must be specified if time is specified")
 
-        return self.server.get_images(num=num, author=author, date = date, time = time)
+        return self.server.get_images(num=num, username=username, date = date, time = time)
     
     def register(self, name: str, password: str) -> None:
         """Creates a new user
@@ -80,7 +84,8 @@ class ServerAPI():
         # try to open image
         try:
             image = Image.open(path)
-        except:
+        except Exception as e:
+            print(e)
             raise Exception("Image could not be opened check path and format")
         # encrypt image
         # TODO

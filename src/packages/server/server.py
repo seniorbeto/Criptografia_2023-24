@@ -1,10 +1,5 @@
 from .user import User
-import json
-import os
-import re
-import random
 from PIL import Image, PngImagePlugin
-from datetime import datetime
 from .storage_manager import StorageManager
 
 class Server():
@@ -115,20 +110,22 @@ class Server():
         self.__sm.storage_img(image, user_name, info)
     
 
-    def get_images(self, num: int, author: str | None = None, date: str | None =None, time: str | None = None) -> list:
+    def get_images(self, num: int, username: str | None = None, date: str | None =None, time: str | None = None) -> list:
         """Returns a list of images from the given camera
         Args:
             num (int): number of images to return
             author (str, optional): name of the  owner. Defaults to None.
-            date_time (str, optional): date and time of the image. Defaults to None.
-                format: "%Y/%m/%d" HH_MM_SS 
+            date (str, optional): date of the images. Defaults to None.
+                format: "%Y/%m/%d"
+            time (str, optional): time of the images. Defaults to None.
+                format: HH_MM_SS
         Returns:
             list: list of images
         """
         # CHECKS #TODO
 
         # get images
-        return self.__sm.get_images(num, author, date, time)
+        return self.__sm.get_images(num, username, date, time)
 
     def login(self, name: str, password: str) -> bool:
         """Logs in a user
