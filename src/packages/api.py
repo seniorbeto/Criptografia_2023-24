@@ -21,8 +21,13 @@ class ServerAPI():
         Returns:
             list: list of images
         """
+        # si no se espècifica usuario se coge al usuario logeado (si hay, si no sera None)
         if username is None:
             username = self.username
+        # si se especifica @all se coge todas las imagenes idependientemente del usuario logeado
+        if username == "@all":
+            username = None
+        
         if date is not None:
             author = self.username
         if time is not None:
@@ -47,9 +52,6 @@ class ServerAPI():
         """
         self.username = None
         self.password = None
-
-    def get_cameras(self) -> list:
-        return self.server.get_user_cameras(self.username)
 
     def login(self, name: str, password: str) -> bool:
         """Logs in a user
@@ -91,3 +93,11 @@ class ServerAPI():
         # TODO
         # upload image
         return self.server.store_image(image, self.username)
+    
+    def remove_image(self, date: str, time: str) -> None:
+        """Removes the image with the given name
+        Args:
+            date (str): date of the image
+            time (str): time of the image
+        """
+        return self.server.remove_image(self.username, date, time)

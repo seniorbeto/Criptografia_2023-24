@@ -64,6 +64,9 @@ class StorageManager():
         # create directories if they dont exist
         os.makedirs(os.path.dirname(path), exist_ok=True)
         img.save(path, "PNG", pnginfo=metadata)
+        # close image
+        img.close()
+
     
     def get_images(self, num: int, username: str | None = None, date: str | None =None, time: str | None = None) -> list:
         """Returns a list of images from the given camera
@@ -78,6 +81,8 @@ class StorageManager():
             list: list of images
         """
 
+        if num in [None, -1, 0]:
+            num = float("inf")
         
         if username is not None and date is not None:
             return self.__get_images_from_date(username, date, time, num)
@@ -115,14 +120,15 @@ class StorageManager():
                         images_paths += [f"{self.__path}/data/images/{user}/{year}/{month}/{day}/{image}" for image in os.listdir(f"{self.__path}/data/images/{user}/{year}/{month}/{day}")]
         
         # get random images
-        num = min(num, len(images_paths))
+        num = min(num, len(images_paths)-1)
         
         choices = random.sample(images_paths, k=num)
 
         images = []
         for choice in choices:
-            images.append(Image.open(choice))
-        
+            img = Image.open(choice)
+            images.append(img.copy())
+            img.close()
         return images
         
 
@@ -152,13 +158,15 @@ class StorageManager():
                     images_paths += [f"{self.__path}/data/images/{username}/{year}/{month}/{day}/{image}" for image in os.listdir(f"{self.__path}/data/images/{username}/{year}/{month}/{day}")]
         
         # get random images
-        num = min(num, len(images_paths))
+        num = min(num, len(images_paths)-1)
 
         choices = random.sample(images_paths, k=num)
 
         images = []
         for choice in choices:
-            images.append(Image.open(choice))
+            img = Image.open(choice)
+            images.append(img.copy())
+            img.close()
         
         return images
 
@@ -223,13 +231,15 @@ class StorageManager():
         
 
         # get random images
-        num = min(num, len(images_paths))
+        num = min(num, len(images_paths)-1)
 
         choices = random.sample(images_paths, k=num)
 
         images = []
         for choice in choices:
-            images.append(Image.open(choice))
+            img = Image.open(choice)
+            images.append(img.copy())
+            img.close()
         
         return images
 
@@ -242,6 +252,26 @@ class StorageManager():
             raise ValueError("Invalid date format")
 
         return tuple(date.split("/"))
+
+    def remove_image(self, username: str, date: str, time: str) -> None:
+        """Deletes an image
+        Args:
+            username (str): name of the username
+            date (str): date of the image - format: YYYY/MM/DD
+            time (str): time of the image - format: HH_MM_SS
+        """
+        # check if username has taken ANY picture = has a path with his name
+        if username not in os.listdir(f"{self.__path}/data/images"):
+            raise ValueError("User not found") 
+        
+        # get path of image
+        path = f"{self.__path}/data/images/{username}/{date}/{time}.png"
+        try:
+            os.remove(path)
+        except:
+            # image not found
+            raise ValueError("Image not found")
+        
     
     def delete_all_users(self):
         # REMOVE AFTER TESTING

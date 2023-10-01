@@ -145,6 +145,21 @@ class Server():
                 else:
                     return False
         return False
+    
+    def remove_image(self, username: str, date: str, time: str) -> None:
+        """Removes the image with the given name
+        Args:
+            username (str): name of the user
+            date (str): date of the image
+            time (str): time of the image
+        """
+        if username == "" or username is None:
+            raise ValueError("Username cannot be empty")
+        elif date == "":
+            raise ValueError("Date cannot be empty")
+        elif time == "":
+            raise ValueError("Time cannot be empty")
+        self.__sm.remove_image(username, date, time)
 
     def clear_server(self):
         """Clears the server
