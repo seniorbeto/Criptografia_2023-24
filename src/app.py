@@ -4,13 +4,14 @@ from screens.home_screen import HomeScreen
 from screens.user_screen import UserScreen
 from packages.api import ServerAPI
 from packages.server import Server
+from packages.server.ImgPackage import ImgPackage
 
 class App():
     def __init__(self):
         self.root = tk.Tk()
         self.api = ServerAPI()
         self.root.title("La pinga de la ponga")
-        self.root.geometry("600x400")
+        self.root.geometry("700x400")
 
         self.root.grid_rowconfigure(0, weight=1)
         self.root.grid_columnconfigure(0, weight=1)

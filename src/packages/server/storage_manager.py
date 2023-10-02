@@ -2,6 +2,7 @@ import os
 import json
 from .user import User
 from PIL import Image
+from .ImgPackage import ImgPackage
 from datetime import datetime
 import random
 import re
@@ -64,6 +65,9 @@ class StorageManager():
         # create directories if they dont exist
         os.makedirs(os.path.dirname(path), exist_ok=True)
         img.save(path, "PNG", pnginfo=metadata)
+        # close image
+        img.close()
+
     
     def get_images(self, num: int, username: str | None = None, date: str | None =None, time: str | None = None) -> list:
         """Returns a list of images from the given camera
@@ -78,6 +82,8 @@ class StorageManager():
             list: list of images
         """
 
+        if num in [None, -1, 0]:
+            num = float("inf")
         
         if username is not None and date is not None:
             return self.__get_images_from_date(username, date, time, num)
@@ -104,6 +110,7 @@ class StorageManager():
         # get paths of all images 
         # path has format: data/images/username/YYYY/MM/DD/hh_mm_ss.png
         images_paths = []
+
         users = os.listdir(f"{self.__path}/data/images")
         for user in users:
             years = os.listdir(f"{self.__path}/data/images/{user}")
@@ -112,7 +119,9 @@ class StorageManager():
                 for month in months:
                     days = os.listdir(f"{self.__path}/data/images/{user}/{year}/{month}")
                     for day in days:
-                        images_paths += [f"{self.__path}/data/images/{user}/{year}/{month}/{day}/{image}" for image in os.listdir(f"{self.__path}/data/images/{user}/{year}/{month}/{day}")]
+                        for time in os.listdir(f"{self.__path}/data/images/{user}/{year}/{month}/{day}"):
+                            time = time.replace(".png", "")
+                            images_paths.append({"user": user, "date":f"{year}/{month}/{day}", "time":time, "path": f"{self.__path}/data/images/{user}/{year}/{month}/{day}/{time}.png"})
         
         # get random images
         num = min(num, len(images_paths))
@@ -121,8 +130,8 @@ class StorageManager():
 
         images = []
         for choice in choices:
-            images.append(Image.open(choice))
-        
+            img = ImgPackage(author=choice["user"], date=choice["date"], time=choice["time"], path=choice["path"])
+            images.append(img)
         return images
         
 
@@ -138,7 +147,7 @@ class StorageManager():
             num = float("inf")
         # check if username has taken ANY picture = has a path with his name
         if username not in os.listdir(f"{self.__path}/data/images"):
-            raise ValueError("username has no pictures")
+            return []
         
         # get paths of all images
         # path has format: data/images/username/YYYY/MM/DD/hh_mm_ss.png
@@ -149,7 +158,10 @@ class StorageManager():
             for month in months:
                 days = os.listdir(f"{self.__path}/data/images/{username}/{year}/{month}")
                 for day in days:
-                    images_paths += [f"{self.__path}/data/images/{username}/{year}/{month}/{day}/{image}" for image in os.listdir(f"{self.__path}/data/images/{username}/{year}/{month}/{day}")]
+                    for time in os.listdir(f"{self.__path}/data/images/{username}/{year}/{month}/{day}"):
+                        time = time.replace(".png", "")
+                        images_paths.append({"date":f"{year}/{month}/{day}", "time":time, "path": f"{self.__path}/data/images/{username}/{year}/{month}/{day}/{time}.png"})
+
         
         # get random images
         num = min(num, len(images_paths))
@@ -158,8 +170,8 @@ class StorageManager():
 
         images = []
         for choice in choices:
-            images.append(Image.open(choice))
-        
+            img = ImgPackage(author=username, date=choice["date"], time=choice["time"], path=choice["path"])
+            images.append(img)
         return images
 
     def __get_images_from_date(self, username: str, date: str, time:str = None, num: int = None) -> list:
@@ -177,50 +189,58 @@ class StorageManager():
         
         # check if username has taken ANY picture = has a path with his name
         if username not in os.listdir(f"{self.__path}/data/images"):
-            raise ValueError("username has no pictures")
+            return []
         
         # get paths of all images
         # path has format: data/images/username/YYYY/MM/DD/hh_mm_ss.png
         images_paths = []
 
-        # In order to get images from date we need to check if the date given is only a year, a year and a month or a year, month and day
-        # We do that by converting the string into a tuple of ints whose length varies depending on the date given. For example,
-        # if the date given is 2021/05/12, the tuple will be (2021, 5, 12). If the date given is 2021/05, the tuple will be (2021, 5), etc.
-        new_date = self.__load_date(date)
-        if len(new_date) == 3:
-            try:
-                images_paths += [f"{self.__path}/data/images/{username}/{date}/{image}" for image in os.listdir(f"{self.__path}/data/images/{username}/{date}")]
-            except:
-                # date not found
-                raise ValueError("Date not found")
-        elif len(new_date) == 2:
-            try:
-                days = os.listdir(f"{self.__path}/data/images/{username}/{new_date[0]}/{new_date[1]}")
-                for day in days:
-                    images_paths += [f"{self.__path}/data/images/{username}/{new_date[0]}/{new_date[1]}/{day}/{image}" for image in os.listdir(f"{self.__path}/data/images/{username}/{new_date[0]}/{new_date[1]}/{day}/")]
-            except:
-                # date not found
-                raise ValueError("Date not found")
-        elif len(new_date) == 1:
-            try:
-                months = os.listdir(f"{self.__path}/data/images/{username}/{new_date[0]}")
-                for month in months:
-                    days = os.listdir(f"{self.__path}/data/images/{username}/{new_date[0]}/{month}")
-                    for day in days:
-                        images_paths += [f"{self.__path}/data/images/{username}/{new_date[0]}/{month}/{day}/{image}" for image in os.listdir(f"{self.__path}/data/images/{username}/{new_date[0]}/{month}/{day}")]
-            except:
-                # date not found
-                raise ValueError("Date not found")
-
-
+        
         # try to get images from time
         if time is not None:
             try:
                 return [Image.open(f"{self.__path}/data/images/{username}/{date}/{time}.png")]
             except:
                 # time not found
-                raise ValueError("Time not found")
-        
+                return []
+
+        new_date = self.__load_date(date)
+        if len(new_date) == 3:
+            try:
+                for image in os.listdir(f"{self.__path}/data/images/{username}/{new_date[0]}/{new_date[1]}/{new_date[2]}/"):
+                    img_time = image.replace(".png", "")
+                    images_paths.append({"date":f"{new_date[0]}/{new_date[1]}/{new_date[2]}", 
+                                         "time": img_time, 
+                                         "path": f"{self.__path}/data/images/{username}/{new_date[0]}/{new_date[1]}/{new_date[2]}/{time}.png"})
+            except:
+                # date not found
+                return []
+        elif len(new_date) == 2:
+            try:
+                days = os.listdir(f"{self.__path}/data/images/{username}/{new_date[0]}/{new_date[1]}")
+                for day in days:
+                    for image in os.listdir(f"{self.__path}/data/images/{username}/{new_date[0]}/{new_date[1]}/{day}"):
+                        img_time = image.replace(".png", "")
+                        images_paths.append({"date":f"{new_date[0]}/{new_date[1]}/{day}", 
+                                             "time":img_time, 
+                                             "path": f"{self.__path}/data/images/{username}/{new_date[0]}/{new_date[1]}/{day}/{time}.png"})
+            except:
+                # date not found
+                return []
+        elif len(new_date) == 1:
+            try:
+                months = os.listdir(f"{self.__path}/data/images/{username}/{new_date[0]}")
+                for month in months:
+                    days = os.listdir(f"{self.__path}/data/images/{username}/{new_date[0]}/{month}")
+                    for day in days:
+                        for image in os.listdir(f"{self.__path}/data/images/{username}/{new_date[0]}/{month}/{day}"):
+                            img_time = image.replace(".png", "")
+                            images_paths.append({"date":f"{new_date[0]}/{month}/{day}", 
+                                                 "time":img_time, 
+                                                 "path": f"{self.__path}/data/images/{username}/{new_date[0]}/{month}/{day}/{time}.png"})    
+            except:
+                # date not found
+                return []        
 
         # get random images
         num = min(num, len(images_paths))
@@ -229,8 +249,8 @@ class StorageManager():
 
         images = []
         for choice in choices:
-            images.append(Image.open(choice))
-        
+            img =ImgPackage(author=username, date = choice["date"], time=choice["time"], path=choice["path"] )
+            images.append(img)
         return images
 
     def __load_date(self, date: str) -> tuple[int, int, int]:
@@ -242,6 +262,32 @@ class StorageManager():
             raise ValueError("Invalid date format")
 
         return tuple(date.split("/"))
+
+    def remove_image(self, username: str, date: str, time: str) -> None:
+        """Deletes an image
+        Args:
+            username (str): name of the username
+            date (str): date of the image - format: YYYY/MM/DD
+            time (str): time of the image - format: HH_MM_SS
+        """
+        # check if username has taken ANY picture = has a path with his name
+        if username not in os.listdir(f"{self.__path}/data/images"):
+            raise ValueError("User not found") 
+        
+        # get path of image
+        path = f"{self.__path}/data/images/{username}/{date}/{time}.png"
+        try:
+            os.remove(path)
+        except:
+            # image not found
+            raise ValueError("Image not found")
+        
+        path = os.path.dirname(path)
+        if os.path.exists(path):
+            while os.path.exists(path) and not os.listdir(path):
+                os.rmdir(path)
+                print(f"removed dir: {path}")
+                path = os.path.dirname(path)
     
     def delete_all_users(self):
         # REMOVE AFTER TESTING

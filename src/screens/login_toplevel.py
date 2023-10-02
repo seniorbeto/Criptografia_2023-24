@@ -23,11 +23,13 @@ class LoginWindow(tk.Toplevel):
 
         button = tk.Button(self, text="LOGIN", command=self.check_login)
         button.pack(padx=10, pady=30)
+        self.bind("<Return>", self.check_login)
 
-    def check_login(self):
+    def check_login(self, event=None):
         try:
             self.app.api.login(self.username_entry.get(), self.password_entry.get())
             self.app.showUserScreen()
             self.destroy()
         except ValueError as e:
+            print(e)
             messagebox.showerror("Error", "User or password incorrect")

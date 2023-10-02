@@ -1,5 +1,7 @@
 from packages.server import Server
 from PIL import Image
+from cryptography.hazmat.primitives import hashes
+
 
 class ServerAPI():
     def __init__(self):
@@ -12,7 +14,9 @@ class ServerAPI():
         """Returns a list of images from the given camera
         Args:
             num (int): number of images to return
-            author (str, optional): name of the camera owner. Defaults to None.
+            author (str, optional): name of the camera owner.
+                - None it will return all the images from the logged user.
+                - "@all" it will return all the images from all the users.
             date (str, optional): date of the images. Defaults to None.ç
                 format: "%Y/%m/%d"
 
@@ -21,8 +25,13 @@ class ServerAPI():
         Returns:
             list: list of images
         """
+        # si no se espècifica usuario se coge al usuario logeado (si hay, si no sera None)
         if username is None:
             username = self.username
+        # si se especifica @all se coge todas las imagenes idependientemente del usuario logeado
+        if username == "@all":
+            username = None
+        
         if date is not None:
             author = self.username
         if time is not None:
@@ -38,7 +47,12 @@ class ServerAPI():
             password (str): password of the user
         """
         # TODO
-        return self.server.create_user(name, password)
+        # get hash of password
+        hash = hashes.Hash(hashes.SHA256())
+        hash.update(password.encode())
+        hash = str(hash.finalize().hex())
+
+        return self.server.create_user(name, hash)
 
     def logout(self):
         """
@@ -47,9 +61,6 @@ class ServerAPI():
         """
         self.username = None
         self.password = None
-
-    def get_cameras(self) -> list:
-        return self.server.get_user_cameras(self.username)
 
     def login(self, name: str, password: str) -> bool:
         """Logs in a user
@@ -65,9 +76,14 @@ class ServerAPI():
         o igual no es necesario un login, depende de la implementacion que 
         hagamos de la seguridad 
         """
-        if self.server.login(name, password):
+        # get hash of password
+        hash = hashes.Hash(hashes.SHA256())
+        hash.update(password.encode())
+        hash = str(hash.finalize().hex())
+
+        if self.server.login(name, hash):
             self.username = name
-            self.password = password
+            self.password = hash
         else:
             raise ValueError("User or password incorrect")
 
@@ -90,4 +106,16 @@ class ServerAPI():
         # encrypt image
         # TODO
         # upload image
-        return self.server.store_image(image, self.username)
+        return self.server.store_image(image, self.username, self.password)
+    
+    def remove_image(self, date: str, time: str) -> None:
+        """Removes the image with the given name
+        Args:
+            date (str): date of the image
+            time (str): time of the image
+        """
+        return self.server.remove_image(self.username, self.password, date, time)
+
+    def remove_user(self) -> None:
+        """Removes the user from the server"""
+        return self.server.remove_user(self.username)

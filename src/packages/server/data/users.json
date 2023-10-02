@@ -1,6 +1,17 @@
 [
     {
-        "name": "test",
-        "password": "test"
+        "name": "a",
+        "password": "78702035d3a68bb39ef0a44092ed90c091928317634439daef2d317d48d6e976",
+        "salt": "12af49cdab9f433391769cfcb490a665"
+    },
+    {
+        "name": "test1",
+        "password": "74d2a5625e2e15b9754bff69f579a8b716ad22fcf5355904d29245c629be7d11",
+        "salt": "d75123c5b71a42bcb280504cbebe2d35"
+    },
+    {
+        "name": "user2",
+        "password": "2945956271a13d9ee5f489f33b1a27b1902b667541fd6a6e3a2eca07f7c7d78c",
+        "salt": "ebdab983fc314c10b2200b38c3ec09b8"
     }
 ]

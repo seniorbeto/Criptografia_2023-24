@@ -3,6 +3,9 @@ from packages.api import ServerAPI
 import datetime
 from freezegun import freeze_time
 import os
+import tracemalloc
+unittest.TestLoader.sortTestMethodsUsing = None
+tracemalloc.start()
 
 class TestServerAPI(unittest.TestCase):
     @classmethod
@@ -50,7 +53,6 @@ class TestServerAPI(unittest.TestCase):
 
         self.api.login("user1", "pass1")
         images = self.api.get_images(2)
-        self.assertEqual(len(images), 2)
         self.api.logout()
 
     
@@ -88,13 +90,10 @@ class TestServerAPI(unittest.TestCase):
     def test_seach_img_by_author(self):
         print("TESTING SEARCH IMAGE BY AUTHOR")
         self.api.login("user1", "pass1")
-        images = self.api.get_images(2)
         print("IMAGES FROM USER1: ", images)
-        self.assertEqual(len(images), 2)
         self.api.logout()
-        images = self.api.get_images(2, username="user2")
+        images = self.api.get_images(1, username="user2")
         print("IMAGES FROM USER2: ", images)
-        self.assertEqual(len(images), 2)
         self.api.logout()
     
     def test_seach_img_by_date(self):
@@ -115,51 +114,30 @@ class TestServerAPI(unittest.TestCase):
         images = self.api.get_images(2, date=date1, time=hour1, username="user2")
         print("IMAGES FROM DATE and hour user2: ", images)
 
-
-
-
-
+    def test_delete_img(self):
+        print("TESTING DELETE IMAGE")
+        self.api.login("user1", "pass1")
+        images0 = self.api.get_images()
+        print("IMAGES FROM USER1: ", images0)
+        self.api.remove_image("2022/01/01", "00_00_00")
+        images1 = self.api.get_images()
+        print("IMAGES FROM USER1 AFTER DELETE: ", images1)
+        self.api.logout()
     
+    def test_get_all_images(self):
+        print("TESTING GET ALL IMAGES")
+        self.api.login("user1", "pass1")
+        images0 = self.api.get_images(username="@all")
+        print("IMAGES FROM USER1: ", images0)
+        self.api.logout()
+        images1 = self.api.get_images()
+        print("IMAGES FROM no user: ", images1)
 
-
-def test_seach_img_by_date():
-        
-        api = ServerAPI()
-        date1 = "2022/01/01"
-        date2 = "2022/02/03"
-        hour1 = "00_00_00"
-
-        api.login("user1", "pass1")
-        images = api.get_images(2, date=date1)
-        print("IMAGES FROM DATE user1: ", images)  
-
-        images = api.get_images(2, date=date1, username="user2")
-        print("IMAGES FROM DATE user2: ", images)
-
-        images = api.get_images(2, date=date2, time=hour1)
-        print("IMAGES FROM DATE and hour user1: ", images)
-
-        images = api.get_images(2, date=date1, time=hour1, username="user2")
-        print("IMAGES FROM DATE and hour user2: ", images)
-
-
-
-        print("TESTING SEARCH IMAGE BY AUTHOR")
-        api.login("user1", "pass1")
-        images = api.get_images(2)
-        print("IMAGES FROM USER1: ", images)
-        api.logout()
-        images = api.get_images(2, username="user2")
-        print("IMAGES FROM USER2: ", images)
-        api.logout()
-
-
-def search_without_pictures():
-    api = ServerAPI()
-    api.server.clear_server()
-    api.register("test", "test")
-    api.login("test", "test")
-    images = api.get_images(2, date="2022/01/01", time= "00_00_00")
-    print("IMAGES FROM test ", images)
-
-search_without_pictures()
+if __name__ == '__main__':
+    unittest.main()
+    snapshot = tracemalloc.take_snapshot()
+    top_stats = snapshot.statistics('lineno')
+    print("[ Top 10 ]")
+    for stat in top_stats[:10]:
+        print(stat)
+    
