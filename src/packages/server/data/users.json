@@ -1,14 +1,7 @@
 [
     {
-        "name": "user1",
-        "password": "pass1"
-    },
-    {
-        "name": "user2",
-        "password": "pass2"
-    },
-    {
-        "name": "test",
-        "password": "test"
+        "name": "a",
+        "password": "78702035d3a68bb39ef0a44092ed90c091928317634439daef2d317d48d6e976",
+        "salt": "12af49cdab9f433391769cfcb490a665"
     }
 ]

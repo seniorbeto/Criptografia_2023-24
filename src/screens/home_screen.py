@@ -66,6 +66,13 @@ class HomeScreen(tk.Frame):
         self.user_menu.add_command(label="Login", command=self.login)
         self.user_menu.add_command(label="Register", command=self.register)
 
+        # clean server 
+        self.main_menu.add_command(label="Clean Server", command=self.clean_server)
+    
+    def clean_server(self):
+        self.app.api.server.clear_server()
+        self.initiate_main_display()
+
     def show_images(self):
         self.images = self.app.api.get_images(username="@all")
         y = 0

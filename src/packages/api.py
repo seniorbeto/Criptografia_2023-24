@@ -1,5 +1,7 @@
 from packages.server import Server
 from PIL import Image
+from cryptography.hazmat.primitives import hashes
+
 
 class ServerAPI():
     def __init__(self):
@@ -45,7 +47,12 @@ class ServerAPI():
             password (str): password of the user
         """
         # TODO
-        return self.server.create_user(name, password)
+        # get hash of password
+        hash = hashes.Hash(hashes.SHA256())
+        hash.update(password.encode())
+        hash = str(hash.finalize().hex())
+
+        return self.server.create_user(name, hash)
 
     def logout(self):
         """
@@ -69,9 +76,14 @@ class ServerAPI():
         o igual no es necesario un login, depende de la implementacion que 
         hagamos de la seguridad 
         """
-        if self.server.login(name, password):
+        # get hash of password
+        hash = hashes.Hash(hashes.SHA256())
+        hash.update(password.encode())
+        hash = str(hash.finalize().hex())
+
+        if self.server.login(name, hash):
             self.username = name
-            self.password = password
+            self.password = hash
         else:
             raise ValueError("User or password incorrect")
 

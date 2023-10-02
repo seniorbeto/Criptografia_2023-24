@@ -1,7 +1,8 @@
 class User():
-    def __init__(self, name, password) -> None:
+    def __init__(self, name, password, salt) -> None:
         self.__name = name
         self.__password = password # la idea es que sea un hash
+        self.__salt = salt
 
     @property
     def name(self):
@@ -26,9 +27,14 @@ class User():
         if password == "":
             raise ValueError("Password cannot be empty")
         self.__password = password
+    
+    @property
+    def salt(self):
+        return self.__salt
 
     def __dict__(self):
         return {
             "name": self.name,
-            "password": self.password
+            "password": self.password,
+            "salt": self.salt
         }

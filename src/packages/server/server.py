@@ -1,6 +1,11 @@
 from .user import User
 from PIL import Image, PngImagePlugin
 from .storage_manager import StorageManager
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.kdf.scrypt  import Scrypt
+import re
+import uuid
+
 
 class Server():
     def __init__(self) -> None:
@@ -31,16 +36,37 @@ class Server():
             name (str): name of the user
             password (str): password of the user (hashed)
         """
-
         # check if name is unique
         users = self.__get_users()
         for user in users:
             if user.name == name:
                 raise ValueError("Name is already taken")
-        # generate id for user, this is unique
+            
+        
+        # TODO la contraseña estara encriptada con RSA y el servidor tendra la clave privada
+        # TODO desencriptar la contraseña con la clave privada del servidor
+        
+        #  check if password is hashed 256
+        sha256 = re.compile(r"^[a-fA-F0-9]{64}$")
+        if not sha256.match(password):
+            raise ValueError("Password is not hashed with SHA256")
+        
+        # KDF de la contraseña
+        # TODO
+        salt = uuid.uuid4().hex
+        kdf = Scrypt(
+            salt = bytes.fromhex(salt),
+            length = 32,
+            n = 2**14,
+            r = 8,
+            p = 1
+        )
+        password = kdf.derive(bytes.fromhex(password)).hex()
 
+
+        # create user
         users = self.__get_users()
-        users.append(User(name, password))
+        users.append(User(name, password, salt))
         self.__sm.update_users_json(users)
         
     def remove_user(self, name: str, password: str):
@@ -137,13 +163,29 @@ class Server():
         """
         # update users
         users = self.__get_users()
+
+        # check if user exists
+        usernames = [ user.name for user in users ]
+        if name not in usernames:
+            return False
         
-        for user in users:
+        # check if password is correct
+        # generate kdf with salt
+        for user in self.__get_users():
             if user.name == name:
+                kdf = Scrypt(
+                    salt = bytes.fromhex(user.salt),
+                    length = 32,
+                    n = 2**14,
+                    r = 8,
+                    p = 1
+                )
+                password = kdf.derive(bytes.fromhex(password)).hex()
                 if user.password == password:
                     return True
                 else:
                     return False
+                
         return False
     
     def remove_image(self, username: str, date: str, time: str) -> None:

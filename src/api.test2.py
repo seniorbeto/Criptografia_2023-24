@@ -3,12 +3,16 @@ import tracemalloc
 import os
 import freezegun
 from PIL import Image
-tracemalloc.start()
-api = ServerAPI()
 
-api.login("user1", "pass1")
-print(api.get_images(username="@all"))
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
 
-# api.remove_image("2022/02/05", "00_00_00")
-api.remove_image("2022/02/04", "00_00_00")
-api.remove_image("2022/02/03", "00_00_00")
+
+test = hashes.Hash(hashes.SHA256())
+test.update("test".encode())
+test = test.finalize()
+print(test)
+
+bytes.fromhex(test.hex())
+
+print(bytes.fromhex(test.hex()))
