@@ -80,17 +80,13 @@ class Server():
             raise ValueError("Name cannot be empty")
         elif password == "":
             raise ValueError("Password cannot be empty")
-        users = self.__get_users()
-        for user in users:
-            if user.name == name:
-                if user.password == password:
-                    self.__remove_user(user)
-                    return
-                else:
-                    raise ValueError("Wrong password")
+        
+        # check if user exists and if password is correct
+        if self.__check_password(name=name, password=password):
+            pass
         raise ValueError("User not found")
 
-    def store_image(self, image: Image, user_name):
+    def store_image(self, image: Image, user_name, password):
         """ Stores the image in the server, IMAGE FORMAT: PNG
         Args:
             image_path (str): path to the image 
@@ -103,15 +99,10 @@ class Server():
             raise ValueError("Image cannot be empty")
         
 
-        # check if owner is valid
-        owner = None
-        users = self.__get_users()
-        for user in users:
-            if user.name == user_name:
-                owner = user
-                break
-        if owner == None:
-            raise ValueError("Owner not found")
+        # check if owner is valid and if password is correct
+        if not self.__check_password(user_name, password):
+            raise ValueError("User or password incorrect")
+        
         
         # checK  tags #TODO
         pass
@@ -135,7 +126,6 @@ class Server():
         # store image
         self.__sm.storage_img(image, user_name, info)
     
-
     def get_images(self, num: int, username: str | None = None, date: str | None =None, time: str | None = None) -> list:
         """Returns a list of images from the given camera
         Args:
@@ -170,25 +160,9 @@ class Server():
             return False
         
         # check if password is correct
-        # generate kdf with salt
-        for user in self.__get_users():
-            if user.name == name:
-                kdf = Scrypt(
-                    salt = bytes.fromhex(user.salt),
-                    length = 32,
-                    n = 2**14,
-                    r = 8,
-                    p = 1
-                )
-                password = kdf.derive(bytes.fromhex(password)).hex()
-                if user.password == password:
-                    return True
-                else:
-                    return False
-                
-        return False
+        return self.__check_password(name, password)
     
-    def remove_image(self, username: str, date: str, time: str) -> None:
+    def remove_image(self, username: str, password:str, date: str, time: str) -> None:
         """Removes the image with the given name
         Args:
             username (str): name of the user
@@ -201,8 +175,33 @@ class Server():
             raise ValueError("Date cannot be empty")
         elif time == "":
             raise ValueError("Time cannot be empty")
+        
+        if not self.__check_password(username, password):
+            raise ValueError("User or password incorrect")
+        
         self.__sm.remove_image(username, date, time)
 
+    
+    def __check_password(self, name: str, password: str) -> bool:
+        # get users salt and password
+        users = self.__get_users()
+        for user in users:
+            if user.name == name:
+                # generate kdf with salt
+                kdf = Scrypt(
+                    salt = bytes.fromhex(user.salt),
+                    length = 32,
+                    n = 2**14,
+                    r = 8,
+                    p = 1
+                )
+                password = kdf.derive(bytes.fromhex(password)).hex()
+                if user.password == password:
+                    return True
+                else:
+                    return False
+        return False
+    
     def clear_server(self):
         """Clears the server
         """

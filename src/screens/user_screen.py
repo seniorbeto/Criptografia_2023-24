@@ -70,6 +70,10 @@ class UserScreen(tk.Frame):
         self.main_menu.add_cascade(label="User", menu=self.user_menu)
         self.user_menu.add_command(label="Logout", command=self.logout)
         self.user_menu.add_command(label="Change Password")
+        self.user_menu.add_command(label="Remove User", command=self.remove_user)
+
+    def remove_user(self):
+        ...
 
     def logout(self):
         self.app.api.logout()

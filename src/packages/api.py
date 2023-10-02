@@ -106,7 +106,7 @@ class ServerAPI():
         # encrypt image
         # TODO
         # upload image
-        return self.server.store_image(image, self.username)
+        return self.server.store_image(image, self.username, self.password)
     
     def remove_image(self, date: str, time: str) -> None:
         """Removes the image with the given name
@@ -114,4 +114,8 @@ class ServerAPI():
             date (str): date of the image
             time (str): time of the image
         """
-        return self.server.remove_image(self.username, date, time)
+        return self.server.remove_image(self.username, self.password, date, time)
+
+    def remove_user(self) -> None:
+        """Removes the user from the server"""
+        return self.server.remove_user(self.username)
