@@ -1,17 +1,17 @@
 [
     {
+        "name": "admin",
+        "password": "562388921ce6089667213e0827aa7d28ea765230a39a32502f735baa62566e2c",
+        "salt": "dd803e21f5fc462789724f7972a17751"
+    },
+    {
         "name": "a",
-        "password": "78702035d3a68bb39ef0a44092ed90c091928317634439daef2d317d48d6e976",
-        "salt": "12af49cdab9f433391769cfcb490a665"
+        "password": "1d7a81232a284b79d57c2a4c9ea7f85eb541a19fe3e63ea5355e483aceb51f6e",
+        "salt": "dec3d71e95ee4e83813c61cc6dfc762d"
     },
     {
-        "name": "test1",
-        "password": "74d2a5625e2e15b9754bff69f579a8b716ad22fcf5355904d29245c629be7d11",
-        "salt": "d75123c5b71a42bcb280504cbebe2d35"
-    },
-    {
-        "name": "user2",
-        "password": "2945956271a13d9ee5f489f33b1a27b1902b667541fd6a6e3a2eca07f7c7d78c",
-        "salt": "ebdab983fc314c10b2200b38c3ec09b8"
+        "name": "beto",
+        "password": "2f51cf8234f57e5f0a918c8f83724665c90db1c7d8780a24e27735bc44a45105b1d98d7c80c266a2a7d672e5e62d735573bc55cd292889ba2ae2b6f0cd0b6e39",
+        "salt": "2f03ea05a51b4fbbaaf2101607fce936"
     }
 ]
