@@ -18,7 +18,7 @@ class Server():
             list: list of users
         """
         return self.__sm.get_users()
-
+    
     def __remove_user(self, user: User) -> None:
         """Removes the given user
         Args:
@@ -46,29 +46,37 @@ class Server():
         # TODO la contraseña estara encriptada con RSA y el servidor tendra la clave privada
         # TODO desencriptar la contraseña con la clave privada del servidor
         
-        #  check if password is hashed 256
-        sha256 = re.compile(r"^[a-fA-F0-9]{64}$")
-        if not sha256.match(password):
-            raise ValueError("Password is not hashed with SHA256")
-        
         # KDF de la contraseña
-        # TODO
-        salt = uuid.uuid4().hex
+        salt_p = uuid.uuid4().hex
         kdf = Scrypt(
-            salt = bytes.fromhex(salt),
+            salt = bytes.fromhex(salt_p),
             length = 32,
             n = 2**14,
             r = 8,
             p = 1
         )
-        password = kdf.derive(bytes.fromhex(password)).hex()
+        password = kdf.derive(bytes(password, "utf-8")).hex()
+        print("Derivated  password: ", password)    
 
-
+        salt_k = uuid.uuid4().hex
         # create user
         users = self.__get_users()
-        users.append(User(name, password, salt))
+        users.append(User(name, password, salt_p, salt_k))
         self.__sm.update_users_json(users)
         
+    def get_salt_k(self, username:str):
+        """Returns the salt of the given user
+        Args:
+            username (str): name of the user
+        Returns:
+            str: salt of the user
+        """
+        users = self.__get_users()
+        for user in users:
+            if user.name == username:
+                return user.salt_k
+        raise ValueError("User not found")
+
     def remove_user(self, name: str, password: str):
         """Removes the user with the given name
         Args:
@@ -82,7 +90,7 @@ class Server():
             raise ValueError("Password cannot be empty")
         
         # check if user exists and if password is correct
-        if self.__check_password(name=name, password=password):
+        if self.__authenticate(name=name, password=password):
             pass
         raise ValueError("User not found")
 
@@ -100,7 +108,7 @@ class Server():
         
 
         # check if owner is valid and if password is correct
-        if not self.__check_password(user_name, password):
+        if not self.__authenticate(user_name, password):
             raise ValueError("User or password incorrect")
         
         
@@ -160,7 +168,7 @@ class Server():
             return False
         
         # check if password is correct
-        return self.__check_password(name, password)
+        return self.__authenticate(name, password)
     
     def remove_image(self, username: str, password:str, date: str, time: str) -> None:
         """Removes the image with the given name
@@ -176,26 +184,29 @@ class Server():
         elif time == "":
             raise ValueError("Time cannot be empty")
         
-        if not self.__check_password(username, password):
+        if not self.__authenticate(username, password):
             raise ValueError("User or password incorrect")
         
         self.__sm.remove_image(username, date, time)
 
     
-    def __check_password(self, name: str, password: str) -> bool:
+    def __authenticate(self, name: str, password: str) -> bool:
         # get users salt and password
         users = self.__get_users()
         for user in users:
             if user.name == name:
                 # generate kdf with salt
                 kdf = Scrypt(
-                    salt = bytes.fromhex(user.salt),
+                    salt = bytes.fromhex(user.salt_p),
                     length = 32,
                     n = 2**14,
                     r = 8,
                     p = 1
                 )
-                password = kdf.derive(bytes.fromhex(password)).hex()
+                password = kdf.derive(bytes(password, "utf-8")).hex()
+                print("Derivated password: ", password)
+                print("readed password:", user.password)
+
                 if user.password == password:
                     return True
                 else:

@@ -1,16 +1,16 @@
 from packages.server import Server
 from packages.imgproc import *
 from PIL import Image
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-
+import json
 
 class ServerAPI():
     def __init__(self):
         self.username = None
         self.password = None
-        self.__encryptor = None
-        self.__decryptor = None
+        self.encryptor = None
         self.server = Server()
 
     def get_images(self, num: int | None = -1, username: str | None = None, 
@@ -50,13 +50,7 @@ class ServerAPI():
             name (str): name of the user
             password (str): password of the user
         """
-        # TODO
-        # get hash of password
-        hash = hashes.Hash(hashes.SHA256())
-        hash.update(password.encode())
-        hash = str(hash.finalize().hex())
-
-        return self.server.create_user(name, hash)
+        return self.server.create_user(name, password)
 
     def logout(self):
         """
@@ -74,22 +68,22 @@ class ServerAPI():
         Returns:
             bool: True if the user was logged in, False otherwise
         """
-        #TODO
-        """
-        habra que hacer una funcion que verifique si los datos son correctos
-        o igual no es necesario un login, depende de la implementacion que 
-        hagamos de la seguridad 
-        """
-        # get hash of password
-        hash = hashes.Hash(hashes.SHA256())
-        hash.update(password.encode())
-        hash = str(hash.finalize().hex())
 
-        if self.server.login(name, hash):
+        if self.server.login(name, password):
             self.username = name
-            self.password = hash
+            self.password = password
+
         else:
             raise ValueError("User or password incorrect")
+
+    def get_salt_k(self) -> bytes:
+        """Returns the salt key of the user
+        Returns:
+            bytes: salt key
+        """
+        salt_k = self.server.get_salt_k(self.username)
+        return bytes.fromhex(salt_k) 
+    
 
     def upload_photo(self, path: str) -> None:
         """Uploads a photo to the server
@@ -108,9 +102,17 @@ class ServerAPI():
             print(e)
             raise Exception("Image could not be opened check path and format")
         # encrypt image
-        # init vector de prueba
+        # generate aes key
+        key = PBKDF2HMAC(
+            salt = self.get_salt_k(),
+            length = 192,
+            algorithm=hashes.SHA256(),
+            iterations=100000
+        ).derive(self.password.encode())
+        # encrypt image with aes
         init_vector = b'\x12\x97\x9f\xd2\xd8\xac_\n2\x134=\x07\xea=\xd7'
-        cipher = Cipher(algorithms.AES(bytes.fromhex(self.password)), modes.CBC(init_vector))
+
+        cipher = Cipher(algorithms.AES(key), modes.CBC(init_vector))
         self.__encryptor = cipher.encryptor()
 
         pixels = getColors(image, x=50, y=50, width=100, height=100)
@@ -137,3 +139,14 @@ class ServerAPI():
     def remove_user(self) -> None:
         """Removes the user from the server"""
         return self.server.remove_user(self.username)
+
+    def update_local_json(self):
+        """Updates the json file"""
+        json_data = {
+            "username": self.username,
+            "password": self.password,
+            "encryptor": self.encryptor
+        }
+        with open("data.json", "w") as json_file:
+            json.dump("local_user_data.json", json_file)
+        

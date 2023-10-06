@@ -1,17 +1,8 @@
 [
     {
-        "name": "admin",
-        "password": "562388921ce6089667213e0827aa7d28ea765230a39a32502f735baa62566e2c",
-        "salt": "dd803e21f5fc462789724f7972a17751"
-    },
-    {
         "name": "a",
-        "password": "1d7a81232a284b79d57c2a4c9ea7f85eb541a19fe3e63ea5355e483aceb51f6e",
-        "salt": "dec3d71e95ee4e83813c61cc6dfc762d"
-    },
-    {
-        "name": "beto",
-        "password": "2f51cf8234f57e5f0a918c8f83724665c90db1c7d8780a24e27735bc44a45105b1d98d7c80c266a2a7d672e5e62d735573bc55cd292889ba2ae2b6f0cd0b6e39",
-        "salt": "2f03ea05a51b4fbbaaf2101607fce936"
+        "password": "d6a00b76d7a25404f0ae411c1829f8d44c4e2269fd7d4031afc68b77fcf0825c",
+        "salt_p": "230a62f028cf466e9c5604e17b265c2c",
+        "salt_k": "0554679db6fe418db8201a3dd08029e5"
     }
 ]
