@@ -285,6 +285,8 @@ class StorageManager():
         path = os.path.dirname(path)
         if os.path.exists(path):
             while os.path.exists(path) and not os.listdir(path):
+                if path == f"{self.__path}/data/images":
+                    break
                 os.rmdir(path)
                 print(f"removed dir: {path}")
                 path = os.path.dirname(path)

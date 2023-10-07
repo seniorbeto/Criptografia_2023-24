@@ -5,6 +5,7 @@ from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 import json
+from packages.imgproc.image_encryptor import ImageEncryptor
 
 class ServerAPI():
     def __init__(self):
@@ -102,28 +103,15 @@ class ServerAPI():
             print(e)
             raise Exception("Image could not be opened check path and format")
         # encrypt image
-        # generate aes key
+        # generate users aes key
         key = PBKDF2HMAC(
             salt = self.get_salt_k(),
-            length = 192,
+            length = 32, # 32 bytes = 256 bits
             algorithm=hashes.SHA256(),
             iterations=100000
         ).derive(self.password.encode())
-        # encrypt image with aes
-        init_vector = b'\x12\x97\x9f\xd2\xd8\xac_\n2\x134=\x07\xea=\xd7'
-
-        cipher = Cipher(algorithms.AES(key), modes.CBC(init_vector))
-        self.__encryptor = cipher.encryptor()
-
-        pixels = getColors(image, x=50, y=50, width=100, height=100)
-        new_pixels = []
-        for px in pixels:
-            print(pixels[px].strip("#"))
-            new = self.__encryptor.update(bytes.fromhex(pixels[px].strip("#")))
-            if str(new.hex()) == "":
-                new_pixels.append("#"+str(new.hex()))
-            print("#"+str(new.hex()))
-        updatePixels(image, x=50, y=50, width=100, height=100, color=new_pixels)
+        # encrypt image 
+        image = ImageEncryptor.encrypt(image, key)
 
         # upload image
         return self.server.store_image(image, self.username, self.password)

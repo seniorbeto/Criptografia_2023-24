@@ -50,7 +50,7 @@ class Server():
         salt_p = uuid.uuid4().hex
         kdf = Scrypt(
             salt = bytes.fromhex(salt_p),
-            length = 32,
+            length = 32, # 256 bits
             n = 2**14,
             r = 8,
             p = 1

@@ -11,23 +11,27 @@ def rgbToHex(rgb: tuple) -> str:
     Converts a tuple of RGB values to a hexadecimal color code.
     """
     if len(rgb) != 3:
+        print(rgb)
         raise ValueError("The tuple must contain 3 values.")
     for i in rgb:
         if i < 0 or i > 255:
+            print(rgb)
             raise ValueError("The rgb values must be between 0 and 255.")
 
-    return "#{:02X}{:02X}{:02X}".format(rgb[0], rgb[1], rgb[2])
+    return "{:02X}{:02X}{:02X}".format(rgb[0], rgb[1], rgb[2])
 
 def hexToRgb(hex: str | int) -> tuple:
     """
     Converts a hexadecimal color code to a tuple of RGB values.
     """
     if type(hex) == int and hex < 0 or hex > 0xFFFFFF:
+        print(hex)
         raise ValueError("The hex value must be between 0 and 0xFFFFFF.")
-    elif type(hex) == str and len(hex) != 7 and hex[0] != "#":
-        raise ValueError("The hex value must be a string of length 7.")
+    elif type(hex) == str and len(hex) != 6:
+        print(hex)
+        raise ValueError("The hex value must be a string of length 6.")
 
-    if type(hex) == str and hex[0] == "#":
+    if type(hex) == str:
         return (int(hex[1:3], 16), int(hex[3:5], 16), int(hex[5:7], 16))
     else:
         return (int(hex[0:2], 16), int(hex[2:4], 16), int(hex[4:6], 16))
@@ -54,7 +58,6 @@ def getColors(img: Image, x: int = None, y: int = None, width: int = None, heigh
                 color = img.getpixel((i, j))
                 color_hex = rgbToHex(color)
                 colors[(i, j)] = color_hex
-
     return colors
 
 def updatePixels(img: Image, x: int, y: int, width: int, height: int, color: tuple | list) -> None:
@@ -66,6 +69,7 @@ def updatePixels(img: Image, x: int, y: int, width: int, height: int, color: tup
     """
     # Check if the color is a tuple or a dictionary
     if type(color) == list and len(color) != width * height:
+        print(f"len color in: {len(color)} WxH: {width * height}")
         raise ValueError("The number of colors must be equal to the number of pixels in the specified region.")
 
     # If the color argument is a tuple
@@ -79,8 +83,11 @@ def updatePixels(img: Image, x: int, y: int, width: int, height: int, color: tup
         for i in range(y, height + y):
             for j in range(x, width + x):
                 img.putpixel((j, i), color[i * j])
-
-    return image
+    else:
+        print(type(color), color)
+        raise ValueError("The color argument must be a tuple or a list.")
+        
+    return img
 
 
 if __name__ == '__main__':
