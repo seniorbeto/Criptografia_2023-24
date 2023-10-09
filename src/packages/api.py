@@ -106,12 +106,12 @@ class ServerAPI():
         # generate users aes key
         key = PBKDF2HMAC(
             salt = self.get_salt_k(),
-            length = 32, # 32 bytes = 256 bits
+            length = 24, # 24 bytes = 192 bits
             algorithm=hashes.SHA256(),
             iterations=100000
         ).derive(self.password.encode())
         # encrypt image 
-        image = ImageEncryptor.encrypt(image, key)
+        image = ImageEncryptor.encrypt(image, key, 0, 0, 24, 24)
 
         # upload image
         return self.server.store_image(image, self.username, self.password)

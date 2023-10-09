@@ -3,6 +3,7 @@ from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from PIL import Image, PngImagePlugin
+from .imgproc import *
 import os
 
 
@@ -11,7 +12,7 @@ class ImageEncryptor():
         pass
 
     @staticmethod
-    def encrypt(img: Image, x, y, widht, height, key: bytes) -> Image:
+    def encrypt(img: Image,key: bytes, x, y, widht, height) -> Image:
         """
         Encrypts an image using AES-162 in CBC mode
         :param img: image to be encrypted
@@ -31,8 +32,8 @@ class ImageEncryptor():
             raise ValueError("The key must be 192 bits, 24 bytes")
 
 
-        # randomize iv of 192 bits so there is no padding
-        iv = os.urandom(24)
+        # randomize iv 16 bytes for cbc in aes 192
+        iv = os.urandom(16)
         # write the iv in the image metadata
         ImageEncryptor.__write_iv(img, iv)
 
@@ -41,8 +42,14 @@ class ImageEncryptor():
         encryptor = cipher.encryptor()
         
         # ENCRYPT
-        # get the pixels to encrypt in blocks of 8 pixels
-        # TODO
+        # get the pixels to encrypt 
+        pixels = getColors(img, x, y, widht, height)
+        # group them in blocks of 8 pixels
+        blocks = []
+        for pixel, color in pixels.items():
+            print(f"pixel: {pixel}, color: {color}")
+            
+
         # encrypt the pixels
         # TODO
         # separate the pixels from the blocks

@@ -4,5 +4,11 @@
         "password": "36ec529fc563fc7a390b126ef5b8e44ce2c0e3c661f664e3abf859f0b2e1650e",
         "salt_p": "89e98dfb77b84f148deb93a33c29a866",
         "salt_k": "4d8e47c0098d4e159ff31fdd0d95158f"
+    },
+    {
+        "name": "leo",
+        "password": "5fe53bc6102b6423e9755d5019f118253b68c36a25adfc8c026829fd708c9547",
+        "salt_p": "df9f8380de0644fdb3745768f532aab6",
+        "salt_k": "9726e4ef3bf6416cbcb3e8f042203b94"
     }
 ]
