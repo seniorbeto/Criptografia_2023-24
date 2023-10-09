@@ -10,7 +10,11 @@ def rgbToHex(rgb: tuple) -> str:
     """
     Converts a tuple of RGB values to a hexadecimal color code.
     """
-    if len(rgb) != 3:
+    if len(rgb) == 4:
+        # eliminate the alpha value
+        rgb = rgb[:3]
+    
+    elif len(rgb) != 3:
         print(rgb)
         raise ValueError("The tuple must contain 3 values.")
     for i in rgb:
@@ -20,21 +24,13 @@ def rgbToHex(rgb: tuple) -> str:
 
     return "{:02X}{:02X}{:02X}".format(rgb[0], rgb[1], rgb[2])
 
-def hexToRgb(hex: str | int) -> tuple:
-    """
-    Converts a hexadecimal color code to a tuple of RGB values.
-    """
-    if type(hex) == int and hex < 0 or hex > 0xFFFFFF:
-        print(hex)
-        raise ValueError("The hex value must be between 0 and 0xFFFFFF.")
-    elif type(hex) == str and len(hex) != 6:
+def hexToRgb(hex: str ) -> tuple:
+    if isinstance(hex, str) and len(hex) != 6:
         print(hex)
         raise ValueError("The hex value must be a string of length 6.")
 
-    if type(hex) == str:
-        return (int(hex[1:3], 16), int(hex[3:5], 16), int(hex[5:7], 16))
-    else:
-        return (int(hex[0:2], 16), int(hex[2:4], 16), int(hex[4:6], 16))
+    return (int(hex[1:3], 16), int(hex[3:5], 16), int(hex[5:7], 16))
+
 
 def getColors(img: Image, x: int = None, y: int = None, width: int = None, height: int = None) -> dict:
     """
@@ -55,19 +51,28 @@ def getColors(img: Image, x: int = None, y: int = None, width: int = None, heigh
     else:
         for i in range(y, height + y):
             for j in range(x, width + x):
-                color = img.getpixel((i, j))
-                color_hex = rgbToHex(color)
+                
+                try:
+                    color = img.getpixel((i, j))
+                    color_hex = rgbToHex(color)
+                except Exception as e:
+                    print(e)
+                    print(f"i: {i}, j: {j}")
+                    print(f"width: {width}, height: {height}")
+                    print(f"img width: {img.width}, img height: {img.height}")
+                    raise e
                 colors[(i, j)] = color_hex
+            print()
     return colors
 
-def updatePixels(img: Image, x: int, y: int, width: int, height: int, color: tuple | list) -> None:
+def updatePixels(img: Image, x: int, y: int, width: int, height: int, color: tuple | list) -> Image:
     """
     Updates the pixels of an image given the coordinates of the top left corner, the width and height of the rectangle.
     The color argument can be either a tuple or a dictionary. If it is a tuple, then all the pixels in the specified
     region will be painted with the same color. If it is a list, it's length must be equal to the number of pixels in
     the specified region. The pixels will be painted with the colors in the list in the order they appear in it.
     """
-    # Check if the color is a tuple or a dictionary
+    # Check if the color is a tuple or a list
     if type(color) == list and len(color) != width * height:
         print(f"len color in: {len(color)} WxH: {width * height}")
         raise ValueError("The number of colors must be equal to the number of pixels in the specified region.")
@@ -88,6 +93,26 @@ def updatePixels(img: Image, x: int, y: int, width: int, height: int, color: tup
         raise ValueError("The color argument must be a tuple or a list.")
         
     return img
+
+def updatePixelsFromDict(img: Image, x: int, y: int, width: int, height: int, colors: dict) -> Image:
+    """
+    Updates the pixels of an image given the coordinates of the top left corner, the width and height of the rectangle.
+    The color argument can be either a tuple or a dictionary. If it is a tuple, then all the pixels in the specified
+    region will be painted with the same color. If it is a list, it's length must be equal to the number of pixels in
+    the specified region. The pixels will be painted with the colors in the list in the order they appear in it.
+    """
+    # Check if the color is a tuple or a dictionary
+    if type(colors) != dict:
+        raise ValueError("The color argument must be a dictionary.")
+
+    # If the color argument is a tuple
+    for i in range(y, height + y):
+        for j in range(x, width + x):
+            img.putpixel((j, i), hexToRgb(colors[(j, i)]))
+        
+    return img
+    
+
 
 
 if __name__ == '__main__':

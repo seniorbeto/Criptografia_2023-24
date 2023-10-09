@@ -14,18 +14,32 @@ class ImageEncryptor():
     @staticmethod
     def encrypt(img: Image,key: bytes, x, y, widht, height) -> Image:
         """
-        Encrypts an image using AES-162 in CBC mode
+        Encrypts an image using AES-192 in CBC mode
         :param img: image to be encrypted
         :param password: password to encrypt the image
         :return: encrypted image
         """
-        # check if the number of pixels is mupltiple of 8 
+        # comprobar que x+w < width y y+h < height
+        if x + widht >= img.width or y + height >= img.height:
+            x = 0
+            y = 0
+            widht = (img.width // 16) * 16
+            height = (img.height // 16) * 16
+            print("WARNING: The specified region is out of bounds. The whole image will be encrypted")
+            print(f"new x: {x}, new y: {y}, new width: {widht}, new height: {height}")
+            print(f"img width: {img.width}, img height: {img.height}")
+            print(f"new widht%16 = {widht % 16}, new height%16 = {height % 16}")
+
+        # cada pixel son 6hex = 3 bytes, necesito bloques de tamaño multiplo de 16 bytes (tamaño de bloque de aes)
+        # necesito bloques de 48 bytes = 16 pixeles 
+        # check if the number of pixels is mupltiple of 16 
         n = (x-widht) * (y-height)
-        if n % 8 != 0:
-            raise ValueError("The number of pixels must be multiple of 8")
-        # check if there are at least 8 pixels
-        if n < 8:
-            raise ValueError("There must be at least 8 pixels")
+        if n % 16 != 0:
+            print(f"x: {x}, y: {y}, width: {widht}, height: {height}, n: {n}")
+            raise ValueError("The number of pixels must be multiple of 16")
+        # check if there are at least 16 pixels
+        if n < 16:
+            raise ValueError("There must be at least 16 pixels")
         
         # check if key is 192 bits = 24 bytes
         if len(key) != 24:
@@ -44,20 +58,42 @@ class ImageEncryptor():
         # ENCRYPT
         # get the pixels to encrypt 
         pixels = getColors(img, x, y, widht, height)
-        # group them in blocks of 8 pixels
-        blocks = []
+        # group them in blocks of 
+        blocks = [] # list of blocks, each block is 48 bytes = 16 pixels
+        current_block = b''
+        i = 0
         for pixel, color in pixels.items():
-            print(f"pixel: {pixel}, color: {color}")
-            
+            if i == 16:
+                blocks.append(current_block)
+                current_block = b''
+                i = 0
+            current_block += bytes.fromhex(color)
+            i += 1
+        
+        # encrypt the blocks
+        encrypted_blocks = []
+        for block in blocks:
+            encrypted_blocks.append(encryptor.update(block).hex())
+            # print(f"block: {block.hex()}")
 
-        # encrypt the pixels
-        # TODO
-        # separate the pixels from the blocks
-        # TODO
+        # separate the encrypted blocks in pixels, each block is 48 bytes = 16 pixels
+        pixels_keys = list(pixels.keys())
+        new_pixels = {}
+        for i in range(len(encrypted_blocks)):
+            block = encrypted_blocks[i]
+            for j in range(16):
+                new_pixels[pixels_keys[i*16 + j]] = block[6*j:6*j+6]
+        # print(f"old pixels len: {len(pixels)}")
+        # print(f"nº  of  blocks: {len(blocks)}")
+        # print(f"nº of old pixels: {len(blocks)*16}")
+        # print()
+        # print(f"nº of encrypted blocks: {len(encrypted_blocks)}")
+        # print(f"nº of new pixels: {len(encrypted_blocks)*16}")
+        # print(f"new pixels len: {len(new_pixels)}")
+
         # update the pixels in the image
-        # TODO
-        # return the encrypted image
-        # TODO
+        updatePixelsFromDict(img, x, y, widht, height, pixels)
+
         return img
 
 

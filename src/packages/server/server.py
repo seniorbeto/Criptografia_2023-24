@@ -204,8 +204,8 @@ class Server():
                     p = 1
                 )
                 password = kdf.derive(bytes(password, "utf-8")).hex()
-                print("Derivated password: ", password)
-                print("readed password:", user.password)
+                # print("Derivated password: ", password)
+                # print("readed password:", user.password)
 
                 if user.password == password:
                     return True
