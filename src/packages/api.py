@@ -111,7 +111,7 @@ class ServerAPI():
             iterations=100000
         ).derive(self.password.encode())
         # encrypt image 
-        image = ImageEncryptor.encrypt(image, key, 0, 0, image.width, image.height)
+        image = ImageEncryptor.encrypt(image, key, 50, 50, 16*5, 16*5)
 
         # upload image
         return self.server.store_image(image, self.username, self.password)

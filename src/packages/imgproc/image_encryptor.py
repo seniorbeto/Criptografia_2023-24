@@ -33,7 +33,7 @@ class ImageEncryptor():
         # cada pixel son 6hex = 3 bytes, necesito bloques de tamaño multiplo de 16 bytes (tamaño de bloque de aes)
         # necesito bloques de 48 bytes = 16 pixeles 
         # check if the number of pixels is mupltiple of 16 
-        n = (x-widht) * (y-height)
+        n = (widht) * (height) # number of pixels
         if n % 16 != 0:
             print(f"x: {x}, y: {y}, width: {widht}, height: {height}, n: {n}")
             raise ValueError("The number of pixels must be multiple of 16")
@@ -47,43 +47,42 @@ class ImageEncryptor():
 
 
         # randomize iv 16 bytes for cbc in aes 192
-        iv = os.urandom(16)
-        # write the iv in the image metadata
-        ImageEncryptor.__write_iv(img, iv)
+        nonce = os.urandom(16)
+        # write the nonce in the image metadata
+        ImageEncryptor.__write_nonce(img, nonce)
 
         # create cipher
-        cipher = Cipher(algorithms.AES(key), modes.CBC(iv))
+        cipher = Cipher(algorithms.AES(key), modes.CTR(nonce))
         encryptor = cipher.encryptor()
         
         # ENCRYPT
         # get the pixels to encrypt 
         pixels = getColors(img, x, y, widht, height)
         # group them in blocks of 
-        blocks = [] # list of blocks, each block is 48 bytes = 16 pixels
-        current_block = b''
-        i = 0
+        block = bytearray() 
         for pixel, color in pixels.items():
-            if i == 16:
-                blocks.append(current_block)
-                current_block = b''
-                i = 0
-            current_block += bytes.fromhex(color)
-            i += 1
-        
-        # encrypt the blocks
-        encrypted_blocks = []
-        for block in blocks:
-            encrypted_blocks.append(encryptor.update(block).hex())
-            # print(f"block: {block.hex()}")
+            block += color # color es un bytearray de 3 bytes
 
+        encripted_block = encryptor.update(block)
+
+        
         # separate the encrypted blocks in pixels, each block is 48 bytes = 16 pixels
         pixels_keys = list(pixels.keys())
+        print(f"len encripted_block //3: {len(encripted_block)//3}")
+        print(f"len pixels_keys: {len(pixels_keys)}")
+
         new_pixels = {}
-        for i in range(len(encrypted_blocks)):
-            block = encrypted_blocks[i]
-            for j in range(16-1):
-                # print(f"pixel key: {pixels_keys[i*16 + j]}", end=". ")
-                new_pixels[pixels_keys[i*16 + j]] = block[6*j:6*j+6]
+        iteraciones = 0
+        for i in range(widht-1):
+            for j in range(height-1):
+                new_pixels[(i, j)] = encripted_block[0:3]
+                # print(f"new pixel: {new_pixels[(i, j)]}")
+                encripted_block = encripted_block[3:]
+                iteraciones += 1
+        print(f"iteraciones: {iteraciones}")
+
+
+        
             # print()
         # print(f"old pixels len: {len(pixels)}")
         # print(f"nº  of  blocks: {len(blocks)}")
@@ -94,35 +93,35 @@ class ImageEncryptor():
         # print(f"new pixels len: {len(new_pixels)}")
 
         # update the pixels in the image
-        updatePixelsFromDict(img, x, y, widht, height, pixels)
+        updatePixelsFromDict(img, x, y, widht, height, new_pixels)
 
         return img
 
 
 
-    def __write_iv(img: Image, iv: bytes):
+    def __write_nonce(img: Image, nonce: bytes):
         """
-        Writes the iv in the image metadata
+        Writes the nonce in the image metadata
         :param img: image
-        :param iv: iv to be written
+        :param nonce: nonce to be written
         """
         old_meta_data = img.info
         # print(f"old meta data: {old_meta_data}, type: {type(old_meta_data)}")
-        new_meta_data = {"iv": iv.hex()}
+        new_meta_data = {"nonce": nonce.hex()}
         # combine old and new metadata
         new_meta_data.update(old_meta_data)
         # print(f"new meta data: {new_meta_data}, type: {type(new_meta_data)}")
         # write the new metadata
-        print(f"write iv: {iv.hex()}")
+        print(f"write nonce: {nonce.hex()}")
         img.info = new_meta_data
 
-    def __read_iv(img: Image) -> bytes:
+    def __read_nonce(img: Image) -> bytes:
         """
-        Reads the iv from the image metadata
+        Reads the nonce from the image metadata
         :param img: image
-        :return: iv
+        :return: nonce
         """
         meta_data = img.info  # dictioanry
-        iv = meta_data["iv"]
-        print(f"read iv: {iv}")
-        return bytes.fromhex(iv)
+        nonce = meta_data["nonce"]
+        print(f"read nonce: {nonce}")
+        return bytes.fromhex(nonce)

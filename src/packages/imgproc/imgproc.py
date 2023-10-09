@@ -21,8 +21,23 @@ def rgbToHex(rgb: tuple) -> str:
         if i < 0 or i > 255:
             print(rgb)
             raise ValueError("The rgb values must be between 0 and 255.")
-
-    return "{:02X}{:02X}{:02X}".format(rgb[0], rgb[1], rgb[2])
+    
+def rgbToBytes(rgb: tuple) -> bytearray:
+    """
+    Converts a tuple of RGB values to a bytes object.
+    """
+    if len(rgb) == 4:
+        # eliminate the alpha value
+        rgb = rgb[:3]
+    
+    elif len(rgb) != 3:
+        print(rgb)
+        raise ValueError("The tuple must contain 3 values.")
+    result = bytearray()
+    for i in rgb:
+        result.append(i)
+    return result
+    
 
 def hexToRgb(hex: str ) -> tuple:
     if isinstance(hex, str) and len(hex) != 6:
@@ -41,9 +56,7 @@ def getColors(img: Image, x: int = None, y: int = None, width: int = None, heigh
     colors = {}
     for i in range(width-1):
         for j in range(height-1):
-            colors[(x + i, y + j)] = rgbToHex(img.getpixel((x + i, y + j)))
-
-
+            colors[(x + i, y + j)] = rgbToBytes(img.getpixel((x + i, y + j)))
     return colors
 
 def updatePixels(img: Image, x: int, y: int, width: int, height: int, color: tuple | list) -> Image:
@@ -75,6 +88,15 @@ def updatePixels(img: Image, x: int, y: int, width: int, height: int, color: tup
         
     return img
 
+def binaryToRgb(binary: bytearray) -> tuple:
+    """
+    Converts a bytearray of length 3 to a tuple of RGB values.
+    """
+    if len(binary) != 3:
+        print(binary)
+        raise ValueError("The bytearray must have a length of 3.")
+    return (int(binary[0]), int(binary[1]), int(binary[2]))
+
 def updatePixelsFromDict(img: Image, x: int, y: int, width: int, height: int, colors: dict) -> Image:
     """
     Updates the pixels of an image given the coordinates of the top left corner, the width and height of the rectangle.
@@ -89,7 +111,7 @@ def updatePixelsFromDict(img: Image, x: int, y: int, width: int, height: int, co
     # If the color argument is a tuple
     for i in range(width-1):
         for j in range(height-1):
-            img.putpixel((x + i, y + j), hexToRgb(colors[(x + i, y + j)]))
+            img.putpixel((x + i, y + j), binaryToRgb(colors[(x + i, y + j)]))
         
     return img
     
