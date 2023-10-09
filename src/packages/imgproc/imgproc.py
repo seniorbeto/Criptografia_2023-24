@@ -39,30 +39,11 @@ def getColors(img: Image, x: int = None, y: int = None, width: int = None, heigh
     will be returned.
     """
     colors = {}
+    for i in range(width-1):
+        for j in range(height-1):
+            colors[(x + i, y + j)] = rgbToHex(img.getpixel((x + i, y + j)))
 
-    if not x and not y and not width and not height:
-        # If not size is specified, return the colors of the whole image
-        width, height = img.size
-        for i in range(height):
-            for j in range(width):
-                color = img.getpixel((j, i))
-                color_hex = rgbToHex(color)
-                colors[(j, i)] = color_hex
-    else:
-        for i in range(y, height + y):
-            for j in range(x, width + x):
-                
-                try:
-                    color = img.getpixel((i, j))
-                    color_hex = rgbToHex(color)
-                except Exception as e:
-                    print(e)
-                    print(f"i: {i}, j: {j}")
-                    print(f"width: {width}, height: {height}")
-                    print(f"img width: {img.width}, img height: {img.height}")
-                    raise e
-                colors[(i, j)] = color_hex
-            print()
+
     return colors
 
 def updatePixels(img: Image, x: int, y: int, width: int, height: int, color: tuple | list) -> Image:
@@ -106,9 +87,9 @@ def updatePixelsFromDict(img: Image, x: int, y: int, width: int, height: int, co
         raise ValueError("The color argument must be a dictionary.")
 
     # If the color argument is a tuple
-    for i in range(y, height + y):
-        for j in range(x, width + x):
-            img.putpixel((j, i), hexToRgb(colors[(j, i)]))
+    for i in range(width-1):
+        for j in range(height-1):
+            img.putpixel((x + i, y + j), hexToRgb(colors[(x + i, y + j)]))
         
     return img
     

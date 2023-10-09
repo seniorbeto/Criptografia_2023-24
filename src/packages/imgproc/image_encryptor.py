@@ -81,8 +81,10 @@ class ImageEncryptor():
         new_pixels = {}
         for i in range(len(encrypted_blocks)):
             block = encrypted_blocks[i]
-            for j in range(16):
+            for j in range(16-1):
+                # print(f"pixel key: {pixels_keys[i*16 + j]}", end=". ")
                 new_pixels[pixels_keys[i*16 + j]] = block[6*j:6*j+6]
+            print()
         # print(f"old pixels len: {len(pixels)}")
         # print(f"nº  of  blocks: {len(blocks)}")
         # print(f"nº of old pixels: {len(blocks)*16}")
