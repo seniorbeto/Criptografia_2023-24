@@ -56,7 +56,7 @@ class Server():
             p = 1
         )
         password = kdf.derive(bytes(password, "utf-8")).hex()
-        print("Derivated  password: ", password)    
+        # print("Derivated  password: ", password)    
 
         salt_k = uuid.uuid4().hex
         # create user
@@ -83,7 +83,7 @@ class Server():
             name (str): name of the user
             password (str): password of the user (hashed)
         """
-        print("Trying to remove: ", name, " ", password)
+        # print("Trying to remove: ", name, " ", password)
         if name == "":
             raise ValueError("Name cannot be empty")
         elif password == "":
