@@ -18,6 +18,25 @@ class StorageManager():
         os.makedirs(f"{self.__path}/data", exist_ok=True)
         os.makedirs(f"{self.__path}/data/images", exist_ok=True)
     
+    def remove_images(self, username: str) -> None:
+        """Removes all images from a user"""
+        users = os.listdir(f"{self.__path}/data/images")
+
+        if username not in users:
+            raise ValueError("User not found")
+
+        years = os.listdir(f"{self.__path}/data/images/{username}")
+        for year in years:
+            months = os.listdir(f"{self.__path}/data/images/{username}/{year}")
+            for month in months:
+                days = os.listdir(f"{self.__path}/data/images/{username}/{year}/{month}")
+                for day in days:
+                    images = os.listdir(f"{self.__path}/data/images/{username}/{year}/{month}/{day}")
+                    for image in images:
+                        os.remove(f"{self.__path}/data/images/{username}/{year}/{month}/{day}/{image}")
+                    os.rmdir(f"{self.__path}/data/images/{username}/{year}/{month}/{day}")
+                os.rmdir(f"{self.__path}/data/images/{username}/{year}/{month}")
+            os.rmdir(f"{self.__path}/data/images/{username}/{year}")
 
     def get_users(self) -> list:
         """Returns the list of users

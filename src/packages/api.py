@@ -93,11 +93,17 @@ class ServerAPI():
         """
 
         if self.server.login(name, password):
+            print("LOGED AS: ", name, password)
             self.username = name
             self.password = password
 
         else:
             raise ValueError("User or password incorrect")
+
+    def remove_user(self) -> None:
+        """Removes the user from the server"""
+        if self.server.login(self.username, self.password):
+            self.server.remove_user(self.username, self.password)
 
     def get_salt_k(self) -> bytes:
         """Returns the salt key of the user
@@ -145,10 +151,6 @@ class ServerAPI():
             time (str): time of the image
         """
         return self.server.remove_image(self.username, self.password, date, time)
-
-    def remove_user(self) -> None:
-        """Removes the user from the server"""
-        return self.server.remove_user(self.username)
 
     def update_local_json(self):
         """Updates the json file"""

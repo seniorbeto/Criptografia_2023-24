@@ -25,10 +25,11 @@ class Server():
             user (User): user to be removed
         """
         users = self.__get_users()
-        users.remove(user)
+        for usr in users:
+            if user == usr.name:
+                users.remove(usr)
+        self.__sm.remove_images(user)
         self.__sm.update_users_json(users)
-    
-
 
     def create_user(self, name, password) -> None:
         """Creates a new user with the given name and password
@@ -91,8 +92,9 @@ class Server():
         
         # check if user exists and if password is correct
         if self.__authenticate(name=name, password=password):
-            pass
-        raise ValueError("User not found")
+            self.__remove_user(name)
+        else:
+            raise ValueError("User not found")
 
     def store_image(self, image: Image, user_name, password):
         """ Stores the image in the server, IMAGE FORMAT: PNG
