@@ -93,7 +93,6 @@ class ServerAPI():
         """
 
         if self.server.login(name, password):
-            print("LOGED AS: ", name, password)
             self.username = name
             self.password = password
 

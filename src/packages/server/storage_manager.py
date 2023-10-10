@@ -37,6 +37,7 @@ class StorageManager():
                     os.rmdir(f"{self.__path}/data/images/{username}/{year}/{month}/{day}")
                 os.rmdir(f"{self.__path}/data/images/{username}/{year}/{month}")
             os.rmdir(f"{self.__path}/data/images/{username}/{year}")
+        os.rmdir(f"{self.__path}/data/images/{username}")
 
     def get_users(self) -> list:
         """Returns the list of users
