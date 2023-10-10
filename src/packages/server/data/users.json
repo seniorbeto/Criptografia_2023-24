@@ -1,8 +1,14 @@
 [
     {
-        "name": "a",
-        "password": "6a8aa7a7f5d2e01b68a18c07460cca4f2150a95421e5f5b3eb04069450d3f1ee",
-        "salt_p": "679d95438357455ebcc831af45c442b7",
-        "salt_k": "a60e23bb3d4142649648094c8622dfc2"
+        "name": "admin",
+        "password": "de3702eeeb4f04254c0863c406dab6fada6d5d3c975a0f4e034581ad415c2a5f",
+        "salt_p": "33ec6a45e5cb425b90eb3fcd79f3fc86",
+        "salt_k": "c96fba9822aa4307b62c93cccce74c49"
+    },
+    {
+        "name": "beto",
+        "password": "b5bead148c5edb4df311629498b8ee84067f04f3749bb8310a519fcdc77b958e",
+        "salt_p": "c0c4ae35ff524a43bb17bae7703d78aa",
+        "salt_k": "e388b2f8021a45f9a37374253a0df843"
     }
 ]
