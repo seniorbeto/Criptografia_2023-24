@@ -1,11 +1,12 @@
-from packages.server import Server
+from packages.server import Server, ImgPackage
 from packages.imgproc import *
 from PIL import Image
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-import json
 from packages.imgproc.image_encryptor import ImageEncryptor
+
+import json
 
 class ServerAPI():
     def __init__(self):
@@ -43,7 +44,28 @@ class ServerAPI():
             if date is None:
                 raise Exception("Date must be specified if time is specified")
 
-        return self.server.get_images(num=num, username=username, date = date, time = time)
+        if username == None:
+            return self.server.get_images(num=num, username=username, date = date, time = time)
+
+        # if the user is logged in, we will return de decrypted images
+        images = self.server.get_images(num=num, username=username, date = date, time = time)
+        decrypted_images = []
+
+        # generate users AES key
+        key = PBKDF2HMAC(
+            salt=self.get_salt_k(),
+            length=24,  # 24 bytes = 192 bits
+            algorithm=hashes.SHA256(),
+            iterations=100000
+        ).derive(self.password.encode())
+
+        for im in images:
+            decrypted = ImageEncryptor.decrypt(im.image, key, 0, 0, im.image.width, im.image.height)
+            new = ImgPackage(im.author, im.date, im.time, im.path,decrypted)
+            decrypted_images.append(new)
+
+        return decrypted_images
+
     
     def register(self, name: str, password: str) -> None:
         """Creates a new user
@@ -103,7 +125,7 @@ class ServerAPI():
             print(e)
             raise Exception("Image could not be opened check path and format")
         # encrypt image
-        # generate users aes key
+        # generate users AES key
         key = PBKDF2HMAC(
             salt = self.get_salt_k(),
             length = 24, # 24 bytes = 192 bits
@@ -111,7 +133,7 @@ class ServerAPI():
             iterations=100000
         ).derive(self.password.encode())
         # encrypt image 
-        image = ImageEncryptor.encrypt(image, key, 50, 50, 16*5, 16*5)
+        image = ImageEncryptor.encrypt(image, key, 0, 0, image.width, image.height)
 
         # upload image
         return self.server.store_image(image, self.username, self.password)

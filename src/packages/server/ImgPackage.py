@@ -1,12 +1,12 @@
 from PIL import Image
 
 class ImgPackage():
-    def __init__(self, author, date, time, path) -> None:
+    def __init__(self, author, date, time, path, image) -> None:
         self.__author = author
         self.__date = date
         self.__time = time
         self.__path = path
-        self.__image = (Image.open(path)).copy()
+        self.__image = image
 
     @property
     def author(self):
@@ -19,6 +19,10 @@ class ImgPackage():
     @property
     def time(self):
         return self.__time
+
+    @property
+    def path(self):
+        return self.__path
     
     @property
     def image(self):

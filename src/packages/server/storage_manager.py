@@ -130,7 +130,7 @@ class StorageManager():
 
         images = []
         for choice in choices:
-            img = ImgPackage(author=choice["user"], date=choice["date"], time=choice["time"], path=choice["path"])
+            img = ImgPackage(author=choice["user"], date=choice["date"], time=choice["time"], path=choice["path"], image=Image.open(choice["path"]))
             images.append(img)
         return images
         
@@ -170,7 +170,7 @@ class StorageManager():
 
         images = []
         for choice in choices:
-            img = ImgPackage(author=username, date=choice["date"], time=choice["time"], path=choice["path"])
+            img = ImgPackage(author=username, date=choice["date"], time=choice["time"], path=choice["path"], image=Image.open(choice["path"]))
             images.append(img)
         return images
 
@@ -249,7 +249,7 @@ class StorageManager():
 
         images = []
         for choice in choices:
-            img =ImgPackage(author=username, date = choice["date"], time=choice["time"], path=choice["path"] )
+            img =ImgPackage(author=username, date = choice["date"], time=choice["time"], path=choice["path"], image=Image.open(choice["path"]))
             images.append(img)
         return images
 

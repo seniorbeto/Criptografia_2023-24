@@ -12,7 +12,56 @@ class ImageEncryptor():
         pass
 
     @staticmethod
-    def encrypt(img: Image,key: bytes, x, y, widht, height) -> Image:
+    def decrypt(img: Image, key: bytes, x, y, width, height) -> Image:
+        """
+        Decrypts an image using AES-192 in CBC mode
+        :param img: the image to be decrypted
+        :param key: the key to decrypt the image
+        :param x:
+        :param y:
+        :param width:
+        :param height:
+        :return: decrypted image
+        """
+        if x + width >= img.width or y + height >= img.height:
+            x = 0
+            y = 0
+            width = (img.width // 16) * 16
+            height = (img.height // 16) * 16
+            print("WARNING: The specified region is out of bounds. The whole image will be decrypted")
+            print(f"new x: {x}, new y: {y}, new width: {width}, new height: {height}")
+            print(f"img width: {img.width}, img height: {img.height}")
+            print(f"new widht%16 = {width % 16}, new height%16 = {height % 16}")
+
+        # get the nonce from the image metadata
+        nonce = ImageEncryptor.__read_nonce(img)
+
+        # create cipher
+        cipher = Cipher(algorithms.AES(key), modes.CTR(nonce))
+        decryptor = cipher.decryptor()
+
+        # DECRYPT
+        # get the pixels to decrypt
+        pixels = getColors(img, x, y, width, height)
+        # group them in blocks of
+        block = bytearray()
+        for pixel, color in pixels.items():
+            block += color
+
+        decrypted_block = decryptor.update(block)
+
+        new_pixels = {}
+        for i in range(width-1):
+            for j in range(height-1):
+                new_pixels[(i, j)] = decrypted_block[0:3]
+                decrypted_block = decrypted_block[3:]
+
+        updatePixelsFromDict(img, x, y, width, height, new_pixels)
+
+        return img
+
+    @staticmethod
+    def encrypt(img: Image, key: bytes, x, y, widht, height) -> Image:
         """
         Encrypts an image using AES-192 in CBC mode
         :param img: image to be encrypted
