@@ -43,18 +43,11 @@ class ImageEncryptor():
         # DECRYPT
         # get the pixels to decrypt
         pixels = getColors(img, x, y, width, height)
-        # group them in blocks of
-        block = bytearray()
-        for pixel, color in pixels.items():
-            block += color
-
-        decrypted_block = decryptor.update(block)
-
         new_pixels = {}
-        for i in range(width-1):
-            for j in range(height-1):
-                new_pixels[(i, j)] = decrypted_block[0:3]
-                decrypted_block = decrypted_block[3:]
+        for pixel, color in pixels.items():
+            block = bytearray()
+            block += decryptor.update(color)
+            new_pixels[pixel] = block
 
         updatePixelsFromDict(img, x, y, width, height, new_pixels)
 
@@ -107,41 +100,12 @@ class ImageEncryptor():
         # ENCRYPT
         # get the pixels to encrypt 
         pixels = getColors(img, x, y, widht, height)
-        # group them in blocks of 
-        block = bytearray() 
-        for pixel, color in pixels.items():
-            block += color # color es un bytearray de 3 bytes
-
-        encripted_block = encryptor.update(block)
-
-        
-        # separate the encrypted blocks in pixels, each block is 48 bytes = 16 pixels
-        pixels_keys = list(pixels.keys())
-        print(f"len encripted_block //3: {len(encripted_block)//3}")
-        print(f"len pixels_keys: {len(pixels_keys)}")
-
         new_pixels = {}
-        iteraciones = 0
-        for i in range(widht-1):
-            for j in range(height-1):
-                new_pixels[(i, j)] = encripted_block[0:3]
-                # print(f"new pixel: {new_pixels[(i, j)]}")
-                encripted_block = encripted_block[3:]
-                iteraciones += 1
-        print(f"iteraciones: {iteraciones}")
+        for pixel, color in pixels.items():
+            block = bytearray()
+            block += encryptor.update(color) # color es un bytearray de 3 bytes
+            new_pixels[pixel] = block
 
-
-        
-            # print()
-        # print(f"old pixels len: {len(pixels)}")
-        # print(f"nº  of  blocks: {len(blocks)}")
-        # print(f"nº of old pixels: {len(blocks)*16}")
-        # print()
-        # print(f"nº of encrypted blocks: {len(encrypted_blocks)}")
-        # print(f"nº of new pixels: {len(encrypted_blocks)*16}")
-        # print(f"new pixels len: {len(new_pixels)}")
-
-        # update the pixels in the image
         updatePixelsFromDict(img, x, y, widht, height, new_pixels)
 
         return img
