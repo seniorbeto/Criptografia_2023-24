@@ -17,8 +17,8 @@ lugar.
 ### Fase 1
 | Checmark | Tarea                                | Puntuación |
 | -------- | ------------------------------------ | ---------- |
-| [x]      | Autenticación de usuarios            | 1          |
-| [x]      | Cifrado simétrico/asimétrico         | 0.75         |
+| - [x]      | Autenticación de usuarios            | 1          |
+| [ x ]      | Cifrado simétrico/asimétrico         | 0.75         |
 | [ ]      | Etiquetas de autenticación de mensajes| 0.75         |
 | [ ]      | Memoria                              | 1          |
 | [ ]      | Defensa                              | 1.5          |
