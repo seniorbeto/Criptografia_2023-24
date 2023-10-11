@@ -1,23 +1,26 @@
 import tkinter as tk
+import time
 from tkinter import ttk
 from screens.home_screen import HomeScreen
 from screens.user_screen import UserScreen
+from screens.loading_screen import LoadingScreen
 from packages.api import ServerAPI
 from packages.server import Server
+from packages.server.ImgPackage import ImgPackage
 
 class App():
     def __init__(self):
         self.root = tk.Tk()
         self.api = ServerAPI()
         self.root.title("La pinga de la ponga")
-        self.root.geometry("600x400")
+        self.root.geometry("700x400")
 
         self.root.grid_rowconfigure(0, weight=1)
         self.root.grid_columnconfigure(0, weight=1)
         self.user = None
 
         self.frames = {}
-        for fr in (HomeScreen, UserScreen):
+        for fr in (HomeScreen, UserScreen, LoadingScreen):
             frame = fr(self)
             self.frames[fr] = frame
             frame.grid(row=0, column=0, sticky=tk.NSEW)
@@ -32,10 +35,20 @@ class App():
         frame.tkraise()
 
     def showHomeScreen(self):
+        self.frames[LoadingScreen].initiate_main_display()
+        self.showScreen(LoadingScreen)
+        self.root.after(10, self.__showHomeScreen)
+
+    def __showHomeScreen(self):
         self.frames[HomeScreen].initiate_main_display()
         self.showScreen(HomeScreen)
 
     def showUserScreen(self):
+        self.frames[LoadingScreen].initiate_main_display()
+        self.showScreen(LoadingScreen)
+        self.root.after(10, self.__showUserScreen)
+
+    def __showUserScreen(self):
         self.frames[UserScreen].initiate_main_display()
         self.showScreen(UserScreen)
 
