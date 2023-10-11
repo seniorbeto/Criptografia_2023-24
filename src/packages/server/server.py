@@ -58,25 +58,11 @@ class Server():
         )
         password = kdf.derive(bytes(password, "utf-8")).hex()
         # print("Derivated  password: ", password)    
-
-        salt_k = uuid.uuid4().hex
         # create user
         users = self.__get_users()
-        users.append(User(name, password, salt_p, salt_k))
+        users.append(User(name, password, salt_p))
         self.__sm.update_users_json(users)
         
-    def get_salt_k(self, username:str):
-        """Returns the salt of the given user
-        Args:
-            username (str): name of the user
-        Returns:
-            str: salt of the user
-        """
-        users = self.__get_users()
-        for user in users:
-            if user.name == username:
-                return user.salt_k
-        raise ValueError("User not found")
 
     def remove_user(self, name: str, password: str):
         """Removes the user with the given name

@@ -1,16 +1,14 @@
 class User():
-    def __init__(self, name, password, salt_p, salt_k) -> None:
+    def __init__(self, name, password, salt_p) -> None:
         """
         params:
             name: name of the user
             password: password of the user
             salt_p: salt for the password
-            salt_k: salt for the key
         """
         self.__name = name
         self.__password = password # la idea es que sea un hash
         self.__salt_p = salt_p
-        self.__salt_k = salt_k
 
 
     @property
@@ -20,16 +18,6 @@ class User():
     @salt_p.setter
     def salt_p(self, salt_p):
         self.__salt_p = salt_p
-        
-    
-    @property
-    def salt_k(self):
-        return self.__salt_k
-    
-    @salt_k.setter
-    def salt_k(self, salt_k):
-        self.__salt_k = salt_k
-    
 
     @property
     def name(self):
@@ -59,6 +47,5 @@ class User():
         return {
             "name": self.name,
             "password": self.password,
-            "salt_p": self.salt_p,
-            "salt_k": self.salt_k
+            "salt_p": self.salt_p
         }

@@ -96,15 +96,6 @@ class ServerAPI():
         if self.server.login(self.username, self.password):
             self.server.remove_user(self.username, self.password)
 
-    def get_salt_k(self) -> bytes:
-        """Returns the salt key of the user
-        Returns:
-            bytes: salt key
-        """
-        salt_k = self.server.get_salt_k(self.username)
-        return bytes.fromhex(salt_k) 
-    
-
     def upload_photo(self, path: str) -> None:
         """Uploads a photo to the server
         Args:
