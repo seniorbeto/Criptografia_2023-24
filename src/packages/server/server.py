@@ -194,6 +194,7 @@ class Server():
     
     def __authenticate(self, name: str, password: str) -> bool:
         # get users salt and password
+        auth = False
         users = self.__get_users()
         for user in users:
             if user.name == name:
@@ -205,15 +206,26 @@ class Server():
                     r = 8,
                     p = 1
                 )
-                password = kdf.derive(bytes(password, "utf-8")).hex()
+                derivated_pass = kdf.derive(bytes(password, "utf-8")).hex()
                 # print("Derivated password: ", password)
                 # print("readed password:", user.password)
 
-                if user.password == password:
-                    return True
-                else:
-                    return False
-        return False
+                if user.password == derivated_pass:
+                    auth = True
+                    # update salt and password
+                    user.salt_p = uuid.uuid4().hex
+                    kdf = Scrypt(
+                        salt = bytes.fromhex(user.salt_p),
+                        length = 32,
+                        n = 2**14,
+                        r = 8,
+                        p = 1
+                    )
+                    user.password = kdf.derive(bytes(password, "utf-8")).hex()
+                    self.__sm.update_users_json(users)
+                    break
+        
+        return auth
     
     def clear_server(self):
         """Clears the server

@@ -17,9 +17,18 @@ class User():
     def salt_p(self):
         return self.__salt_p
     
+    @salt_p.setter
+    def salt_p(self, salt_p):
+        self.__salt_p = salt_p
+        
+    
     @property
     def salt_k(self):
         return self.__salt_k
+    
+    @salt_k.setter
+    def salt_k(self, salt_k):
+        self.__salt_k = salt_k
     
 
     @property
