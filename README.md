@@ -47,8 +47,7 @@ esté utilizando.
 
 La información de valor que se intercambie o almacene además de cifrada debe estar
 autenticada. Los algoritmos de códigos (o etiquetas) de autenticación de mensajes proporcionan
-este servicio. 
-
+este servicio.
 
 ### Fase 2
 
@@ -60,5 +59,3 @@ este servicio.
 | &#9744; | Mejoras (opcional)                   | +1          |
 | &#9744; | Memoria                              | 1          |
 | &#9744; | Defensa                              | 1.5          |
-
-
