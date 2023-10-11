@@ -51,16 +51,8 @@ class ServerAPI():
         images = self.server.get_images(num=num, username=username, date = date, time = time)
         decrypted_images = []
 
-        # generate users AES key
-        key = PBKDF2HMAC(
-            salt=self.get_salt_k(),
-            length=24,  # 24 bytes = 192 bits
-            algorithm=hashes.SHA256(),
-            iterations=100000
-        ).derive(self.password.encode())
-
         for im in images:
-            decrypted = ImageEncryptor.decrypt(im.image, key, 0, 0, im.image.width, im.image.height)
+            decrypted = ImageEncryptor.decrypt(im.image, self.password, 0, 0, im.image.width, im.image.height)
             new = ImgPackage(im.author, im.date, im.time, im.path,decrypted)
             decrypted_images.append(new)
 
@@ -131,14 +123,9 @@ class ServerAPI():
             raise Exception("Image could not be opened check path and format")
         # encrypt image
         # generate users AES key
-        key = PBKDF2HMAC(
-            salt = self.get_salt_k(),
-            length = 24, # 24 bytes = 192 bits
-            algorithm=hashes.SHA256(),
-            iterations=100000
-        ).derive(self.password.encode())
+        
         # encrypt image 
-        image = ImageEncryptor.encrypt(image, key, 0, 0, image.width, image.height)
+        image = ImageEncryptor.encrypt(image, self.password, 0, 0, image.width, image.height)
 
         # upload image
         return self.server.store_image(image, self.username, self.password)
