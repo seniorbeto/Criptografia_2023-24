@@ -17,21 +17,21 @@ lugar.
 ### Fase 1
 | Checmark | Tarea                                | Puntuación |
 | -------- | ------------------------------------ | ---------- |
-| - [x]      | Autenticación de usuarios            | 1          |
-| [ x ]      | Cifrado simétrico/asimétrico         | 0.75         |
-| [ ]      | Etiquetas de autenticación de mensajes| 0.75         |
-| [ ]      | Memoria                              | 1          |
-| [ ]      | Defensa                              | 1.5          |
+| &#9745;      | Autenticación de usuarios            | 1          |
+| &#9745;      | Cifrado simétrico/asimétrico         | 0.75         |
+|  &#9744;      | Etiquetas de autenticación de mensajes| 0.75         |
+| &#9744; | Memoria                              | 1          |
+| &#9744;    | Defensa                              | .5          |
 
 ### Fase 2
 
 | Checmark | Tarea                                | Puntuación |
 | -------- | ------------------------------------ | ---------- |
-| [ ]      | Generación/verificación de firma digital | 1          |
-| [ ]      | Certificados y PKI                   | 1          |
-| [ ]      | Complejidad y diseño de la aplicación desarrollada | 0.5          |
-| [ ]      | Mejoras (opcional)                   | +1          |
-| [ ]      | Memoria                              | 1          |
-| [ ]      | Defensa                              | 1.5          |
+| &#9744; | Generación/verificación de firma digital | 1          |
+| &#9744; | Certificados y PKI              | 1          |
+| &#9744; | Complejidad y diseño de la aplicación desarrollada | 0.5          |
+| &#9744; | Mejoras (opcional)                   | +1          |
+| &#9744; | Memoria                              | 1          |
+| &#9744; | Defensa                              | 1.5          |
 
 
