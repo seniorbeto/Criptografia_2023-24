@@ -24,15 +24,6 @@ class ImageEncryptor():
         :param height:
         :return: decrypted image
         """
-        if x + width >= img.width or y + height >= img.height:
-            x = 0
-            y = 0
-            width = (img.width // 16) * 16
-            height = (img.height // 16) * 16
-            # print("WARNING: The specified region is out of bounds. The whole image will be decrypted")
-            # print(f"new x: {x}, new y: {y}, new width: {width}, new height: {height}")
-            # print(f"img width: {img.width}, img height: {img.height}")
-            # print(f"new widht%16 = {width % 16}, new height%16 = {height % 16}")
 
         # get the iv from the image metadata
         iv, salt = ImageEncryptor.__read_salt_and_iv(img)
@@ -72,27 +63,9 @@ class ImageEncryptor():
         :param password: password  for the PBKDF to generate the key
         :return: encrypted image
         """
-        # comprobar que x+w < width y y+h < height
-        if x + widht >= img.width or y + height >= img.height:
-            x = 0
-            y = 0
-            widht = (img.width // 16) * 16
-            height = (img.height // 16) * 16
-            # print("WARNING: The specified region is out of bounds. The whole image will be encrypted")
-            # print(f"new x: {x}, new y: {y}, new width: {widht}, new height: {height}")
-            # print(f"img width: {img.width}, img height: {img.height}")
-            # print(f"new widht%16 = {widht % 16}, new height%16 = {height % 16}")
-
         # cada pixel son 6hex = 3 bytes, necesito bloques de tamaño multiplo de 16 bytes (tamaño de bloque de aes)
         # necesito bloques de 48 bytes = 16 pixeles 
         # check if the number of pixels is mupltiple of 16 
-        n = (widht) * (height) # number of pixels
-        if n % 16 != 0:
-            print(f"x: {x}, y: {y}, width: {widht}, height: {height}, n: {n}")
-            raise ValueError("The number of pixels must be multiple of 16")
-        # check if there are at least 16 pixels
-        if n < 16:
-            raise ValueError("There must be at least 16 pixels")
         # generate key from password 
         # generate salt
         salt = os.urandom(16)

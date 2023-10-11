@@ -54,8 +54,8 @@ def getColors(img: Image, x: int = None, y: int = None, width: int = None, heigh
     will be returned.
     """
     colors = {}
-    for i in range(width-1):
-        for j in range(height-1):
+    for i in range(width):
+        for j in range(height):
             colors[(x + i, y + j)] = rgbToBytes(img.getpixel((x + i, y + j)))
     return colors
 
@@ -109,8 +109,8 @@ def updatePixelsFromDict(img: Image, x: int, y: int, width: int, height: int, co
         raise ValueError("The color argument must be a dictionary.")
 
     # If the color argument is a tuple
-    for i in range(width-1):
-        for j in range(height-1):
+    for i in range(width):
+        for j in range(height):
             img.putpixel((x + i, y + j), binaryToRgb(colors[(x + i, y + j)]))
         
     return img
