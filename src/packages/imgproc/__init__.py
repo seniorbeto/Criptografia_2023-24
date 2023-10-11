@@ -1,3 +1,3 @@
-from main import getPixels, updatePixels, hexToRgb, rgbToHex
+from .imgproc import getColors, updatePixels, hexToRgb, rgbToHex
 
-__all__ = ["getPixels", "updatePixels", "hexToRgb", "rgbToHex"]
+__all__ = ["getColors", "updatePixels", "hexToRgb", "rgbToHex"]
