@@ -65,6 +65,7 @@ class ServerAPI():
             name (str): name of the user
             password (str): password of the user
         """
+        
         return self.server.create_user(name, password)
 
     def logout(self):

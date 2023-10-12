@@ -46,6 +46,18 @@ class Server():
         
         # TODO la contraseña estara encriptada con RSA y el servidor tendra la clave privada
         # TODO desencriptar la contraseña con la clave privada del servidor
+        # comprobar que la contraseña cumple los requisitos 
+        # 12 caracteres, 1 mayuscula, 1 minuscula, 1 numero, 1 caracter especial
+        if len(password) < 12:
+            raise ValueError("Password must be at least 12 characters long")
+        elif not re.search("[a-z]", password):
+            raise ValueError("Password must contain at least one lowercase letter")
+        elif not re.search("[A-Z]", password):
+            raise ValueError("Password must contain at least one uppercase letter")
+        elif not re.search("[0-9]", password):
+            raise ValueError("Password must contain at least one number")
+        elif not re.search("[!@#$%^&*()_+-={};':\"\\|,.<>/?]", password):
+            raise ValueError("Password must contain at least one special character")
         
         # KDF de la contraseña
         salt_p = uuid.uuid4().hex

@@ -75,10 +75,10 @@ class HomeScreen(tk.Frame):
 
     def admin_mode(self):
         try:
-            self.app.api.login("admin", "admin")
+            self.app.api.login("admin", "Admin_123456")
         except ValueError:
-            self.app.api.register("admin", "admin")
-            self.app.api.login("admin", "admin")
+            self.app.api.register("admin", "Admin_123456")
+            self.app.api.login("admin", "Admin_123456")
         self.app.showUserScreen()
 
     def clean_server(self):

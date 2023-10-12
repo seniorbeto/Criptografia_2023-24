@@ -34,9 +34,6 @@ class RegisterWindow(tk.Toplevel):
     def register(self):
         user = self.username_entry.get()
         password = self.password_entry.get()
-        if not self.is_valid(password):
-            messagebox.showerror("Error", "Password must be at least 8 characters long, have at least one uppercase letter and one special character")
-            return
         try:
             if self.password_entry.get() != self.password_entry_r.get():
                 messagebox.showerror("Error", "Passwords don't match")
@@ -45,9 +42,5 @@ class RegisterWindow(tk.Toplevel):
                 messagebox.showinfo("Success", "User registered successfully")
                 self.destroy()
         except Exception as e:
-            print(e)
-            messagebox.showerror("Error", "Error registering user")
+            messagebox.showerror("Error", f"{e}")
 
-    def is_valid(self, password) -> bool:
-        pat = r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[$@$!%*?&])([A-Za-z\d$@$!%*?&]|[^ ]){12,}$'
-        return bool(re.match(pat, password))
