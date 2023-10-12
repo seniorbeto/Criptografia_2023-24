@@ -111,14 +111,13 @@ class ServerAPI():
         try:
             image = Image.open(path)
         except Exception as e:
-            print(e)
             raise Exception("Image could not be opened check path and format")
         # encrypt image
         # generate users AES key
         
         # encrypt image 
         image = ImageEncryptor.encrypt(image, self.password, x, y, w, h)
-
+        ImageEncryptor.generate_image_hash(image)
         # upload image
         return self.server.store_image(image, self.username, self.password)
     

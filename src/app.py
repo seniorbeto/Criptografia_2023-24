@@ -1,12 +1,9 @@
 import tkinter as tk
-import time
 from tkinter import ttk
 from screens.home_screen import HomeScreen
 from screens.user_screen import UserScreen
 from screens.loading_screen import LoadingScreen
 from packages.api import ServerAPI
-from packages.server import Server
-from packages.server.ImgPackage import ImgPackage
 
 class App():
     def __init__(self):

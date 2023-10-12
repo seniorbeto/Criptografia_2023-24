@@ -308,7 +308,6 @@ class StorageManager():
                 if path == f"{self.__path}/data/images":
                     break
                 os.rmdir(path)
-                print(f"removed dir: {path}")
                 path = os.path.dirname(path)
     
     def delete_all_users(self):
