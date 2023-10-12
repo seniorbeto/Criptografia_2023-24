@@ -69,7 +69,11 @@ class UserScreen(tk.Frame):
         self.user_menu = tk.Menu(self.main_menu, tearoff=0)
         self.main_menu.add_cascade(label="User", menu=self.user_menu)
         self.user_menu.add_command(label="Logout", command=self.logout)
-        self.user_menu.add_command(label="Change Password")
+        self.user_menu.add_command(label="Remove User", command=self.remove_user)
+
+    def remove_user(self):
+        self.app.api.remove_user()
+        self.app.showHomeScreen()
 
     def logout(self):
         self.app.api.logout()

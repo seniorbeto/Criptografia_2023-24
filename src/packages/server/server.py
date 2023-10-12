@@ -1,6 +1,11 @@
 from .user import User
 from PIL import Image, PngImagePlugin
 from .storage_manager import StorageManager
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.kdf.scrypt  import Scrypt
+import re
+import uuid
+
 
 class Server():
     def __init__(self) -> None:
@@ -13,17 +18,18 @@ class Server():
             list: list of users
         """
         return self.__sm.get_users()
-
+    
     def __remove_user(self, user: User) -> None:
         """Removes the given user
         Args:
             user (User): user to be removed
         """
         users = self.__get_users()
-        users.remove(user)
+        for usr in users:
+            if user == usr.name:
+                users.remove(usr)
+        self.__sm.remove_images(user)
         self.__sm.update_users_json(users)
-    
-
 
     def create_user(self, name, password) -> None:
         """Creates a new user with the given name and password
@@ -31,40 +37,52 @@ class Server():
             name (str): name of the user
             password (str): password of the user (hashed)
         """
-
         # check if name is unique
         users = self.__get_users()
         for user in users:
             if user.name == name:
                 raise ValueError("Name is already taken")
-        # generate id for user, this is unique
-
+            
+        
+        # TODO la contraseña estara encriptada con RSA y el servidor tendra la clave privada
+        # TODO desencriptar la contraseña con la clave privada del servidor
+        
+        # KDF de la contraseña
+        salt_p = uuid.uuid4().hex
+        kdf = Scrypt(
+            salt = bytes.fromhex(salt_p),
+            length = 32, # 256 bits
+            n = 2**14,
+            r = 8,
+            p = 1
+        )
+        password = kdf.derive(bytes(password, "utf-8")).hex()
+        # print("Derivated  password: ", password)    
+        # create user
         users = self.__get_users()
-        users.append(User(name, password))
+        users.append(User(name, password, salt_p))
         self.__sm.update_users_json(users)
         
+
     def remove_user(self, name: str, password: str):
         """Removes the user with the given name
         Args:
             name (str): name of the user
             password (str): password of the user (hashed)
         """
-        print("Trying to remove: ", name, " ", password)
+        # print("Trying to remove: ", name, " ", password)
         if name == "":
             raise ValueError("Name cannot be empty")
         elif password == "":
             raise ValueError("Password cannot be empty")
-        users = self.__get_users()
-        for user in users:
-            if user.name == name:
-                if user.password == password:
-                    self.__remove_user(user)
-                    return
-                else:
-                    raise ValueError("Wrong password")
-        raise ValueError("User not found")
+        
+        # check if user exists and if password is correct
+        if self.__authenticate(name=name, password=password):
+            self.__remove_user(name)
+        else:
+            raise ValueError("User not found")
 
-    def store_image(self, image: Image, user_name):
+    def store_image(self, image: Image, user_name, password):
         """ Stores the image in the server, IMAGE FORMAT: PNG
         Args:
             image_path (str): path to the image 
@@ -77,15 +95,10 @@ class Server():
             raise ValueError("Image cannot be empty")
         
 
-        # check if owner is valid
-        owner = None
-        users = self.__get_users()
-        for user in users:
-            if user.name == user_name:
-                owner = user
-                break
-        if owner == None:
-            raise ValueError("Owner not found")
+        # check if owner is valid and if password is correct
+        if not self.__authenticate(user_name, password):
+            raise ValueError("User or password incorrect")
+        
         
         # checK  tags #TODO
         pass
@@ -109,7 +122,6 @@ class Server():
         # store image
         self.__sm.storage_img(image, user_name, info)
     
-
     def get_images(self, num: int, username: str | None = None, date: str | None =None, time: str | None = None) -> list:
         """Returns a list of images from the given camera
         Args:
@@ -137,16 +149,16 @@ class Server():
         """
         # update users
         users = self.__get_users()
+
+        # check if user exists
+        usernames = [ user.name for user in users ]
+        if name not in usernames:
+            return False
         
-        for user in users:
-            if user.name == name:
-                if user.password == password:
-                    return True
-                else:
-                    return False
-        return False
+        # check if password is correct
+        return self.__authenticate(name, password)
     
-    def remove_image(self, username: str, date: str, time: str) -> None:
+    def remove_image(self, username: str, password:str, date: str, time: str) -> None:
         """Removes the image with the given name
         Args:
             username (str): name of the user
@@ -159,8 +171,48 @@ class Server():
             raise ValueError("Date cannot be empty")
         elif time == "":
             raise ValueError("Time cannot be empty")
+        
+        if not self.__authenticate(username, password):
+            raise ValueError("User or password incorrect")
+        
         self.__sm.remove_image(username, date, time)
 
+    
+    def __authenticate(self, name: str, password: str) -> bool:
+        # get users salt and password
+        auth = False
+        users = self.__get_users()
+        for user in users:
+            if user.name == name:
+                # generate kdf with salt
+                kdf = Scrypt(
+                    salt = bytes.fromhex(user.salt_p),
+                    length = 32,
+                    n = 2**14,
+                    r = 8,
+                    p = 1
+                )
+                derivated_pass = kdf.derive(bytes(password, "utf-8")).hex()
+                # print("Derivated password: ", password)
+                # print("readed password:", user.password)
+
+                if user.password == derivated_pass:
+                    auth = True
+                    # update salt and password
+                    user.salt_p = uuid.uuid4().hex
+                    kdf = Scrypt(
+                        salt = bytes.fromhex(user.salt_p),
+                        length = 32,
+                        n = 2**14,
+                        r = 8,
+                        p = 1
+                    )
+                    user.password = kdf.derive(bytes(password, "utf-8")).hex()
+                    self.__sm.update_users_json(users)
+                    break
+        
+        return auth
+    
     def clear_server(self):
         """Clears the server
         """

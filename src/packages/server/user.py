@@ -1,7 +1,23 @@
 class User():
-    def __init__(self, name, password) -> None:
+    def __init__(self, name, password, salt_p) -> None:
+        """
+        params:
+            name: name of the user
+            password: password of the user
+            salt_p: salt for the password
+        """
         self.__name = name
         self.__password = password # la idea es que sea un hash
+        self.__salt_p = salt_p
+
+
+    @property
+    def salt_p(self):
+        return self.__salt_p
+    
+    @salt_p.setter
+    def salt_p(self, salt_p):
+        self.__salt_p = salt_p
 
     @property
     def name(self):
@@ -30,5 +46,6 @@ class User():
     def __dict__(self):
         return {
             "name": self.name,
-            "password": self.password
+            "password": self.password,
+            "salt_p": self.salt_p
         }

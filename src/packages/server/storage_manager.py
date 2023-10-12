@@ -18,6 +18,26 @@ class StorageManager():
         os.makedirs(f"{self.__path}/data", exist_ok=True)
         os.makedirs(f"{self.__path}/data/images", exist_ok=True)
     
+    def remove_images(self, username: str) -> None:
+        """Removes all images from a user"""
+        users = os.listdir(f"{self.__path}/data/images")
+
+        if username not in users:
+            raise ValueError("User not found")
+
+        years = os.listdir(f"{self.__path}/data/images/{username}")
+        for year in years:
+            months = os.listdir(f"{self.__path}/data/images/{username}/{year}")
+            for month in months:
+                days = os.listdir(f"{self.__path}/data/images/{username}/{year}/{month}")
+                for day in days:
+                    images = os.listdir(f"{self.__path}/data/images/{username}/{year}/{month}/{day}")
+                    for image in images:
+                        os.remove(f"{self.__path}/data/images/{username}/{year}/{month}/{day}/{image}")
+                    os.rmdir(f"{self.__path}/data/images/{username}/{year}/{month}/{day}")
+                os.rmdir(f"{self.__path}/data/images/{username}/{year}/{month}")
+            os.rmdir(f"{self.__path}/data/images/{username}/{year}")
+        os.rmdir(f"{self.__path}/data/images/{username}")
 
     def get_users(self) -> list:
         """Returns the list of users
@@ -124,13 +144,13 @@ class StorageManager():
                             images_paths.append({"user": user, "date":f"{year}/{month}/{day}", "time":time, "path": f"{self.__path}/data/images/{user}/{year}/{month}/{day}/{time}.png"})
         
         # get random images
-        num = min(num, len(images_paths)-1)
+        num = min(num, len(images_paths))
         
         choices = random.sample(images_paths, k=num)
 
         images = []
         for choice in choices:
-            img = ImgPackage(author=choice["user"], date=choice["date"], time=choice["time"], path=choice["path"])
+            img = ImgPackage(author=choice["user"], date=choice["date"], time=choice["time"], path=choice["path"], image=Image.open(choice["path"]))
             images.append(img)
         return images
         
@@ -164,13 +184,13 @@ class StorageManager():
 
         
         # get random images
-        num = min(num, len(images_paths)-1)
+        num = min(num, len(images_paths))
 
         choices = random.sample(images_paths, k=num)
 
         images = []
         for choice in choices:
-            img = ImgPackage(author=username, date=choice["date"], time=choice["time"], path=choice["path"])
+            img = ImgPackage(author=username, date=choice["date"], time=choice["time"], path=choice["path"], image=Image.open(choice["path"]))
             images.append(img)
         return images
 
@@ -243,13 +263,13 @@ class StorageManager():
                 return []        
 
         # get random images
-        num = min(num, len(images_paths)-1)
+        num = min(num, len(images_paths))
 
         choices = random.sample(images_paths, k=num)
 
         images = []
         for choice in choices:
-            img =ImgPackage(author=username, date = choice["date"], time=choice["time"], path=choice["path"] )
+            img =ImgPackage(author=username, date = choice["date"], time=choice["time"], path=choice["path"], image=Image.open(choice["path"]))
             images.append(img)
         return images
 
@@ -282,6 +302,14 @@ class StorageManager():
             # image not found
             raise ValueError("Image not found")
         
+        path = os.path.dirname(path)
+        if os.path.exists(path):
+            while os.path.exists(path) and not os.listdir(path):
+                if path == f"{self.__path}/data/images":
+                    break
+                os.rmdir(path)
+                print(f"removed dir: {path}")
+                path = os.path.dirname(path)
     
     def delete_all_users(self):
         # REMOVE AFTER TESTING

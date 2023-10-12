@@ -66,6 +66,25 @@ class HomeScreen(tk.Frame):
         self.user_menu.add_command(label="Login", command=self.login)
         self.user_menu.add_command(label="Register", command=self.register)
 
+
+        # DEVELOPER OPTIONS
+        # clear server
+        self.main_menu.add_command(label="CLEAN SERVER", command=self.clean_server)
+        # admin mode
+        self.main_menu.add_command(label="LOG AS ADMIN", command=self.admin_mode)
+
+    def admin_mode(self):
+        try:
+            self.app.api.login("admin", "admin")
+        except ValueError:
+            self.app.api.register("admin", "admin")
+            self.app.api.login("admin", "admin")
+        self.app.showUserScreen()
+
+    def clean_server(self):
+        self.app.api.server.clear_server()
+        self.initiate_main_display()
+
     def show_images(self):
         self.images = self.app.api.get_images(username="@all")
         y = 0
