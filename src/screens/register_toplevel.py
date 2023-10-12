@@ -49,5 +49,5 @@ class RegisterWindow(tk.Toplevel):
             messagebox.showerror("Error", "Error registering user")
 
     def is_valid(self, password) -> bool:
-        pat = r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[$@$!%*?&])([A-Za-z\d$@$!%*?&]|[^ ]){8,}$'
+        pat = r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[$@$!%*?&])([A-Za-z\d$@$!%*?&]|[^ ]){12,}$'
         return bool(re.match(pat, password))
