@@ -45,18 +45,25 @@ class ServerAPI():
                 raise Exception("Date must be specified if time is specified")
 
         if username == None:
-            return self.server.get_images(num=num, username=username, date = date, time = time)
+            images =  self.server.get_images(num=num, username=username, date = date, time = time)
+            progress = 0
+            for i in images:
+                yield round((progress/len(images))*100, 2), i
+                progress += 1
+            return
 
         # if the user is logged in, we will return de decrypted images
         images = self.server.get_images(num=num, username=username, date = date, time = time)
         decrypted_images = []
-
+        progress = 0
         for im in images:
             decrypted = ImageEncryptor.decrypt(im.image, self.password)
             new = ImgPackage(im.author, im.date, im.time, im.path,decrypted)
             decrypted_images.append(new)
+            yield round((progress/len(images))*100, 2), new
+            progress += 1
 
-        return decrypted_images
+        return
 
     
     def register(self, name: str, password: str) -> None:

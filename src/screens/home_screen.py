@@ -30,8 +30,10 @@ class HomeScreen(tk.Frame):
         # We configure the canvas to use the scrollbar
         self.canvas.configure(yscrollcommand=self.scrollbar.set)
         self.canvas.bind("<Configure>", self.canvas_reconfigure)
-
         self.show_images()
+        self.canvas.update_idletasks()
+        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+
         if platform.system() == "Windows" or platform.system() == "MacOS":
             self.canvas.bind_all("<MouseWheel>", self.on_mousewheel)
         else:
@@ -86,8 +88,13 @@ class HomeScreen(tk.Frame):
         self.initiate_main_display()
 
     def show_images(self):
-        self.images = self.app.api.get_images(username="@all")
+        self.images = []
+        self.app.updateStatus("Getting images from server...")
+        for progress, i in self.app.api.get_images(username="@all"):
+            self.images.append(i)
+            self.app.updateProgress(progress)
         y = 0
+        self.app.updateStatus("Loading images...")
         for i in range(len(self.images)):
             image = ImageTk.PhotoImage(self.images[i].image.resize((200, 200)))
             self.cache_images.append(image)

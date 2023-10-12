@@ -16,6 +16,8 @@ class App():
         self.root.grid_columnconfigure(0, weight=1)
         self.user = None
 
+        self.loading_progress = 0
+
         self.frames = {}
         for fr in (HomeScreen, UserScreen, LoadingScreen):
             frame = fr(self)
@@ -26,6 +28,19 @@ class App():
         self.showHomeScreen()
         self.root.mainloop()
 
+    def resetProgress(self):
+        self.loading_progress = 0
+        self.frames[LoadingScreen].progress_bar["value"] = 0
+        self.frames[LoadingScreen].update()
+
+    def updateProgress(self, progress):
+        self.loading_progress = progress
+        self.frames[LoadingScreen].progress_bar["value"] = progress
+        self.frames[LoadingScreen].update()
+
+    def updateStatus(self, status):
+        self.frames[LoadingScreen].update_status(status)
+
     def showScreen(self, name):
         frame = self.frames[name]
         self.current_screen = frame
@@ -34,7 +49,7 @@ class App():
     def showHomeScreen(self):
         self.frames[LoadingScreen].initiate_main_display()
         self.showScreen(LoadingScreen)
-        self.root.after(10, self.__showHomeScreen)
+        self.root.after(100, self.__showHomeScreen)
 
     def __showHomeScreen(self):
         self.frames[HomeScreen].initiate_main_display()
@@ -43,7 +58,7 @@ class App():
     def showUserScreen(self):
         self.frames[LoadingScreen].initiate_main_display()
         self.showScreen(LoadingScreen)
-        self.root.after(10, self.__showUserScreen)
+        self.root.after(100, self.__showUserScreen)
 
     def __showUserScreen(self):
         self.frames[UserScreen].initiate_main_display()
