@@ -72,13 +72,20 @@ class ImageSelectorWindow(tk.Toplevel):
 
     def check_and_send(self):
         try:
-            x = int(self.x_entry.get())
-            y = int(self.y_entry.get())
-            width = int(self.width_entry.get())
-            height = int(self.height_entry.get())
+            if self.x_entry.get() == "" and self.y_entry.get() == "" and self.width_entry.get() == "" and self.height_entry.get() == "":
+                x = 0
+                y = 0
+                width = self.image.width
+                height = self.image.height
+            else:
+                x = int(self.x_entry.get())
+                y = int(self.y_entry.get())
+                width = int(self.width_entry.get())
+                height = int(self.height_entry.get())
 
             x, y, width, height = self.check_bounds(x, y, width, height)
             self.app.api.upload_photo(self.filepath, x, y, width, height)
+            self.app.showUserScreen()
             self.destroy()
         except ValueError as e:
             messagebox.showerror("Error", "Invalid values. It is not that dificult to put a fucking number in a fucking box.")

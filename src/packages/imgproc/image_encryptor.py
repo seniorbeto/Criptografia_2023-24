@@ -1,6 +1,6 @@
 from packages.imgproc import *
 from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
-from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives import hashes, hmac
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from PIL import Image, PngImagePlugin
@@ -42,8 +42,6 @@ class ImageEncryptor():
             iterations=100000
         ).derive(password.encode())
 
-        # print(f"DECRYPTOR key: {key.hex()}, password: {password}, salt: {salt.hex()}")
-
         # create cipher
         cipher = Cipher(algorithms.AES(key), modes.CTR(iv))
         decryptor = cipher.decryptor()
@@ -81,7 +79,6 @@ class ImageEncryptor():
             algorithm=hashes.SHA256(),
             iterations=100000
         ).derive(password.encode())
-        #  print(f"ENCRYPTOR key: {key.hex()}, password: {password}, salt: {salt.hex()}")
         # check if key is 192 bits = 24 bytes #FIXME REMOVE
         if len(key) != 24:
             raise ValueError("The key must be 192 bits, 24 bytes")
@@ -127,11 +124,7 @@ class ImageEncryptor():
         :param iv: iv to be written
         """
         old_meta_data = img.info
-        # print(f"old meta data: {old_meta_data}, type: {type(old_meta_data)}")
-        # combine old and new metadata
         old_meta_data.update(new_metadata)
-        # print(f"new meta data: {new_meta_data}, type: {type(new_meta_data)}")
-        # write the new metadata
         img.info = old_meta_data
     
     @staticmethod
@@ -142,3 +135,28 @@ class ImageEncryptor():
         :return: (iv, salt)
         """
         return img.info
+
+    @staticmethod
+    def generate_image_hash(img: Image) -> None:
+        """
+        Generates a hash from the image
+        :param img: image to generate the hash from
+        :return:
+            hash of the image
+        """
+        key = os.urandom(32) # 32 bytes = 256 bits para SHA256
+        h = hmac.HMAC(key, hashes.SHA256())
+        img_bytes = img.tobytes()
+
+        iv = bytes.fromhex(ImageEncryptor.__read_metadata(img)["iv"])
+        salt = bytes.fromhex(ImageEncryptor.__read_metadata(img)["salt"])
+        # FIXME 
+        # el key debe ir encriptado con RSA del server
+        h.update(img_bytes + iv + salt + key)
+        signature = h.finalize()
+        ImageEncryptor.__write_metadata(img, {"hash": signature.hex(), "key": key.hex()})
+
+
+
+
+

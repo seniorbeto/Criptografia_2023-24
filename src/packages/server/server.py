@@ -1,7 +1,7 @@
 from .user import User
 from PIL import Image, PngImagePlugin
 from .storage_manager import StorageManager
-from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives import hashes, hmac
 from cryptography.hazmat.primitives.kdf.scrypt  import Scrypt
 import re
 import uuid
@@ -68,8 +68,7 @@ class Server():
             r = 8,
             p = 1
         )
-        password = kdf.derive(bytes(password, "utf-8")).hex()
-        # print("Derivated  password: ", password)    
+        password = kdf.derive(bytes(password, "utf-8")).hex()  
         # create user
         users = self.__get_users()
         users.append(User(name, password, salt_p))
@@ -82,7 +81,6 @@ class Server():
             name (str): name of the user
             password (str): password of the user (hashed)
         """
-        # print("Trying to remove: ", name, " ", password)
         if name == "":
             raise ValueError("Name cannot be empty")
         elif password == "":
@@ -115,7 +113,19 @@ class Server():
         # checK  tags #TODO
         pass
         # check signature #TODO
-        pass
+        image_metadata = image.info
+        hash = image_metadata["hash"]
+        key = bytes.fromhex(image_metadata["key"]) # FIXME el key habra que desencriptarlo
+        # regenerate hash
+        img_bytes = image.tobytes()
+        iv = bytes.fromhex(image_metadata["iv"])
+        salt = bytes.fromhex(image_metadata["salt"])
+
+        h = hmac.HMAC(key, hashes.SHA256())
+        h.update(img_bytes + iv + salt + key)
+        signature = h.finalize()
+        if hash != signature.hex():
+            raise ValueError("Hashes do not match")
         # check certificate #TODO
         pass
         # store image 
@@ -205,8 +215,6 @@ class Server():
                     p = 1
                 )
                 derivated_pass = kdf.derive(bytes(password, "utf-8")).hex()
-                # print("Derivated password: ", password)
-                # print("readed password:", user.password)
 
                 if user.password == derivated_pass:
                     auth = True
