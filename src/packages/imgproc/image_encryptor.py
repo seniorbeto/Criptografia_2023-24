@@ -13,7 +13,7 @@ class ImageEncryptor():
         pass
 
     @staticmethod
-    def decrypt(img: Image, password:str, x, y, width, height) -> Image:
+    def decrypt(img: Image, password:str) -> Image:
         """
         Decrypts an image using AES-192 in CBC mode
         :param img: the image to be decrypted
@@ -26,7 +26,13 @@ class ImageEncryptor():
         """
 
         # get the iv from the image metadata
-        iv, salt = ImageEncryptor.__read_salt_and_iv(img)
+        metadata = ImageEncryptor.__read_metadata(img)
+        iv = bytes.fromhex(metadata["iv"])
+        salt = bytes.fromhex(metadata["salt"])
+        x = int(metadata["x"])
+        y = int(metadata["y"])
+        width = int(metadata["width"])
+        height = int(metadata["height"])
 
         # generate key from password
         key = PBKDF2HMAC(
@@ -36,7 +42,7 @@ class ImageEncryptor():
             iterations=100000
         ).derive(password.encode())
 
-        print(f"DECRYPTOR key: {key.hex()}, password: {password}, salt: {salt.hex()}")
+        # print(f"DECRYPTOR key: {key.hex()}, password: {password}, salt: {salt.hex()}")
 
         # create cipher
         cipher = Cipher(algorithms.AES(key), modes.CTR(iv))
@@ -56,7 +62,7 @@ class ImageEncryptor():
         return img
 
     @staticmethod
-    def encrypt(img: Image, password: str, x, y, widht, height) -> Image:
+    def encrypt(img: Image, password: str, x, y, width, height) -> Image:
         """
         Encrypts an image using AES-192 in CBC mode
         :param img: image to be encrypted
@@ -75,7 +81,7 @@ class ImageEncryptor():
             algorithm=hashes.SHA256(),
             iterations=100000
         ).derive(password.encode())
-        print(f"ENCRYPTOR key: {key.hex()}, password: {password}, salt: {salt.hex()}")
+        #  print(f"ENCRYPTOR key: {key.hex()}, password: {password}, salt: {salt.hex()}")
         # check if key is 192 bits = 24 bytes #FIXME REMOVE
         if len(key) != 24:
             raise ValueError("The key must be 192 bits, 24 bytes")
@@ -84,7 +90,16 @@ class ImageEncryptor():
         # randomize iv 16 bytes for cbc in aes 192
         iv = os.urandom(16)
         # write the iv and salt in the image metadata
-        ImageEncryptor.__write_salt_and_iv(img, iv, salt)
+        
+        metadata = {"iv": iv.hex(), 
+                    "salt": salt.hex(), 
+                    "algo": "AES-192",
+                    "x": x,
+                    "y": y,
+                    "width": width,
+                    "height": height,
+                    }
+        ImageEncryptor.__write_metadata(img, metadata)
 
         # create cipher
         cipher = Cipher(algorithms.AES(key), modes.CTR(iv))
@@ -92,20 +107,20 @@ class ImageEncryptor():
         
         # ENCRYPT
         # get the pixels to encrypt 
-        pixels = getColors(img, x, y, widht, height)
+        pixels = getColors(img, x, y, width, height)
         new_pixels = {}
         for pixel, color in pixels.items():
             block = bytearray()
             block += encryptor.update(color) # color es un bytearray de 3 bytes
             new_pixels[pixel] = block
 
-        updatePixelsFromDict(img, x, y, widht, height, new_pixels)
+        updatePixelsFromDict(img, x, y, width, height, new_pixels)
 
         return img
 
 
-
-    def __write_salt_and_iv(img: Image, iv: bytes, salt: bytes):
+    @staticmethod
+    def __write_metadata(img: Image, new_metadata: dict) -> None:
         """
         Writes the iv in the image metadata
         :param img: image
@@ -113,22 +128,17 @@ class ImageEncryptor():
         """
         old_meta_data = img.info
         # print(f"old meta data: {old_meta_data}, type: {type(old_meta_data)}")
-        new_meta_data = {"iv": iv.hex(), "salt": salt.hex(), "algo": "AES-192"}
-
         # combine old and new metadata
-        new_meta_data.update(old_meta_data)
+        old_meta_data.update(new_metadata)
         # print(f"new meta data: {new_meta_data}, type: {type(new_meta_data)}")
         # write the new metadata
-        img.info = new_meta_data
-
-    def __read_salt_and_iv(img: Image) -> (bytes, bytes):
+        img.info = old_meta_data
+    
+    @staticmethod
+    def __read_metadata(img: Image) -> dict:
         """
         Reads the iv from the image metadata
         :param img: image
         :return: (iv, salt)
         """
-        meta_data = img.info  # dictioanry
-        iv = bytes.fromhex(meta_data["iv"])
-        salt = bytes.fromhex(meta_data["salt"])
-
-        return (iv, salt)
+        return img.info

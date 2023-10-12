@@ -1,7 +1,7 @@
 [
     {
         "name": "admin",
-        "password": "d26fee557227fe9a2d0c6e0f1cda1ee1ac25135914a0e0409a33e45b2aad4011",
-        "salt_p": "3d44d9eaf5da491d9d4f95c03b504fdd"
+        "password": "cba2f8e6e1b2f66c1a389b976e02989592c3ff877f05e357eb3417fce1fd76b2",
+        "salt_p": "37b824f7d8474677b760fdb10613370d"
     }
 ]

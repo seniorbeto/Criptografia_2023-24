@@ -52,7 +52,7 @@ class ServerAPI():
         decrypted_images = []
 
         for im in images:
-            decrypted = ImageEncryptor.decrypt(im.image, self.password, 0, 0, im.image.width, im.image.height)
+            decrypted = ImageEncryptor.decrypt(im.image, self.password)
             new = ImgPackage(im.author, im.date, im.time, im.path,decrypted)
             decrypted_images.append(new)
 
