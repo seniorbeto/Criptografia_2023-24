@@ -1,8 +1,8 @@
 import tkinter as tk
-from tkinter import filedialog
 from PIL import Image, ImageTk
 import platform
 from packages.server.ImgPackage import ImgPackage
+from .image_selector_toplevel import ImageSelectorWindow
 
 class UserScreen(tk.Frame):
     def __init__(self, app):
@@ -92,10 +92,7 @@ class UserScreen(tk.Frame):
             self.canvas.create_window(((i%3)*210, y), window=image_label, anchor="nw")
 
     def add_image(self):
-        filepath = filedialog.askopenfilename(title="Select file", filetypes=(("png files", "*.png"), ("all files", "*.*")))
-        if filepath:
-            self.app.api.upload_photo(filepath)
-            self.initiate_main_display() # Refresh
+        ImageSelectorWindow(self.app)
 
     def delete_image(self, img):
         self.app.api.remove_image(img.date, img.time)
