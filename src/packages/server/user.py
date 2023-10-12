@@ -1,8 +1,23 @@
 class User():
-    def __init__(self, name, password, salt) -> None:
+    def __init__(self, name, password, salt_p) -> None:
+        """
+        params:
+            name: name of the user
+            password: password of the user
+            salt_p: salt for the password
+        """
         self.__name = name
         self.__password = password # la idea es que sea un hash
-        self.__salt = salt
+        self.__salt_p = salt_p
+
+
+    @property
+    def salt_p(self):
+        return self.__salt_p
+    
+    @salt_p.setter
+    def salt_p(self, salt_p):
+        self.__salt_p = salt_p
 
     @property
     def name(self):
@@ -27,14 +42,10 @@ class User():
         if password == "":
             raise ValueError("Password cannot be empty")
         self.__password = password
-    
-    @property
-    def salt(self):
-        return self.__salt
 
     def __dict__(self):
         return {
             "name": self.name,
             "password": self.password,
-            "salt": self.salt
+            "salt_p": self.salt_p
         }
