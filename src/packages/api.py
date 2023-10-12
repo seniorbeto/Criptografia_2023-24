@@ -52,7 +52,7 @@ class ServerAPI():
         decrypted_images = []
 
         for im in images:
-            decrypted = ImageEncryptor.decrypt(im.image, self.password, 0, 0, im.image.width, im.image.height)
+            decrypted = ImageEncryptor.decrypt(im.image, self.password)
             new = ImgPackage(im.author, im.date, im.time, im.path,decrypted)
             decrypted_images.append(new)
 
@@ -65,6 +65,7 @@ class ServerAPI():
             name (str): name of the user
             password (str): password of the user
         """
+        
         return self.server.create_user(name, password)
 
     def logout(self):
@@ -96,7 +97,7 @@ class ServerAPI():
         if self.server.login(self.username, self.password):
             self.server.remove_user(self.username, self.password)
 
-    def upload_photo(self, path: str) -> None:
+    def upload_photo(self, path: str, x: int = 0, y: int = 0, w: int = 200, h: int = 200) -> None:
         """Uploads a photo to the server
         Args:
             path (str): path to the image MUST BE A PNG
@@ -116,7 +117,7 @@ class ServerAPI():
         # generate users AES key
         
         # encrypt image 
-        image = ImageEncryptor.encrypt(image, self.password, 0, 0, image.width, image.height)
+        image = ImageEncryptor.encrypt(image, self.password, x, y, w, h)
 
         # upload image
         return self.server.store_image(image, self.username, self.password)

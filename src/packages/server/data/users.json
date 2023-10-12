@@ -1,1 +1,7 @@
-[]
+[
+    {
+        "name": "admin",
+        "password": "cba2f8e6e1b2f66c1a389b976e02989592c3ff877f05e357eb3417fce1fd76b2",
+        "salt_p": "37b824f7d8474677b760fdb10613370d"
+    }
+]
