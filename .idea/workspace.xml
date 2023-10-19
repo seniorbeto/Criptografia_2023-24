@@ -5,10 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="446584cd-6515-4356-96ec-336f725a059e" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/Criptografia_2023-24.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/Criptografia_2023-24.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/packages/api.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/packages/api.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/packages/imgproc/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/packages/imgproc/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/packages/imgproc/image_encryptor.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/packages/imgproc/image_encryptor.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/packages/imgproc/imgproc.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/packages/imgproc/imgproc.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -53,7 +51,7 @@
       <option name="presentableId" value="Default" />
       <updated>1696847182794</updated>
       <workItem from="1696847183961" duration="631000" />
-      <workItem from="1697743136524" duration="439000" />
+      <workItem from="1697743136524" duration="756000" />
     </task>
     <servers />
   </component>

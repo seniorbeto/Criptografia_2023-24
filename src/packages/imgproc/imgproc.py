@@ -4,20 +4,7 @@ This module contains functions for image processing.
 
 from PIL import Image
 
-def rgbToHex(rgb: tuple) -> str:
-    """
-    Converts a tuple of RGB values to a hexadecimal color code.
-    """
-    if len(rgb) == 4:
-        # eliminate the alpha value
-        rgb = rgb[:3]
-    
-    elif len(rgb) != 3:
-        raise ValueError("The tuple must contain 3 values.")
-    for i in rgb:
-        if i < 0 or i > 255:
-            raise ValueError("The rgb values must be between 0 and 255.")
-    
+
 def rgbToBytes(rgb: tuple) -> bytearray:
     """
     Converts a tuple of RGB values to a bytes object.
