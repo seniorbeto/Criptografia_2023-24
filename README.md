@@ -51,11 +51,11 @@ este servicio.
 
 ### Fase 2
 
-| Checmark | Tarea                                | Puntuación |
-| -------- | ------------------------------------ | ---------- |
-| &#9744; | Generación/verificación de firma digital | 1          |
-| &#9744; | Certificados y PKI              | 1          |
-| &#9744; | Complejidad y diseño de la aplicación desarrollada | 0.5          |
-| &#9744; | Mejoras (opcional)                   | +1          |
-| &#9744; | Memoria                              | 1          |
-| &#9744; | Defensa                              | 1.5          |
+| Checmark | Tarea                                      | Puntuación |
+| -------- | ------------------------------------       | ---------- |
+| &#9744; | Generación/verificación de firma digital    | 1          |
+| &#9744; | Certificados y PKI                          | 1          |
+| &#9744; | Complejidad y diseño de la aplicación desarrollada | 0.5 |
+| &#9744; | Mejoras (opcional)                          | +1         |
+| &#9744; | Memoria                                     | 1          |
+| &#9744; | Defensa                                     | 1.5        |
