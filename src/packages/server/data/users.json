@@ -3,5 +3,10 @@
         "name": "aaa",
         "password": "2ce105072c93f096060ab4a7cd9295e74bf4fb0fda7715ad83af1b3a93de4a20",
         "salt_p": "2ffd16e0a8a045c78af9a7373cd56bae"
+    },
+    {
+        "name": "admin",
+        "password": "ca21486c9506bad52ee59b7dba48958e9006b0b444aafa3436ed0f4eb8dec3be",
+        "salt_p": "f74d7ffe0f044febb02a49d5816d3add"
     }
 ]

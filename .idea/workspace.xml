@@ -5,10 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="446584cd-6515-4356-96ec-336f725a059e" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/Criptografia_2023-24.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/Criptografia_2023-24.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/packages/api.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/packages/api.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/packages/imgproc/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/packages/imgproc/__init__.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/packages/imgproc/image_encryptor.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/packages/imgproc/image_encryptor.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/packages/imgproc/imgproc.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/packages/imgproc/imgproc.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/packages/server/data/images/a/2023/10/08/19_15_16.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/packages/server/server.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/packages/server/server.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -21,6 +21,9 @@
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
   </component>
+  <component name="ProjectColorInfo"><![CDATA[{
+  "associatedIndex": 0
+}]]></component>
   <component name="ProjectId" id="2WWT9BqWZz7A9SEVq6MBTWER3UV" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
@@ -31,7 +34,9 @@
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "WebServerToolWindowFactoryState": "false",
-    "last_opened_file_path": "D:/Edicion y Codigo/Criptografia_2023-24",
+    "git-widget-placeholder": "Working",
+    "ignore.virus.scanning.warn.message": "true",
+    "last_opened_file_path": "D:/Code/Uni/Criptografia_2023-24",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -48,6 +53,7 @@
       <option name="presentableId" value="Default" />
       <updated>1696847182794</updated>
       <workItem from="1696847183961" duration="631000" />
+      <workItem from="1697743136524" duration="439000" />
     </task>
     <servers />
   </component>
