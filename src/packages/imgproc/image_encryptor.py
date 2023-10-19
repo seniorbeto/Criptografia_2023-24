@@ -62,7 +62,6 @@ class ImageEncryptor:
         :param y: y coordinate of the top left corner of square to encrypt
         :param width: width of the square to encrypt
         :param height: height of the square to encrypt
-
         """
         # generate key from password 
         # generate salt
