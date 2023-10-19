@@ -5,7 +5,7 @@ from packages.imgproc.img_cripto_utils import ImageCryptoUtils
 
 import json
 
-class ServerAPI():
+class Client():
     def __init__(self):
         self.username = None
         self.password = None

@@ -3,12 +3,12 @@ from tkinter import ttk
 from screens.home_screen import HomeScreen
 from screens.user_screen import UserScreen
 from screens.loading_screen import LoadingScreen
-from packages.api import ServerAPI
+from packages.client import Client
 
 class App():
     def __init__(self):
         self.root = tk.Tk()
-        self.api = ServerAPI()
+        self.api = Client()
         self.root.title("La pinga de la ponga")
         self.root.geometry("700x400")
 
