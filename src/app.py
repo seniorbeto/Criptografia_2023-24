@@ -5,7 +5,8 @@ from screens.user_screen import UserScreen
 from screens.loading_screen import LoadingScreen
 from packages.client import Client
 
-class App():
+
+class App:
     def __init__(self):
         self.root = tk.Tk()
         self.api = Client()
@@ -63,6 +64,7 @@ class App():
     def __showUserScreen(self):
         self.frames[UserScreen].initiate_main_display()
         self.showScreen(UserScreen)
+
 
 if __name__ == '__main__':
     App()
