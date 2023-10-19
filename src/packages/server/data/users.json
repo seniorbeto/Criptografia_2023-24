@@ -1,7 +1,12 @@
 [
     {
         "name": "admin",
-        "password": "7d8dbb3210b4f312c1d6b350ff4e406edebb4fa694e23317bffb242b829be753",
-        "salt_p": "de578112a2864a7ba5c47236a16b304a"
+        "password": "5f2fe53095b7fd2ace4a2201d49d0f2711134d922d5f49801c58c4e38b03ae6f",
+        "salt_p": "b6ce2fd532c447fea05841b1a767f6f0"
+    },
+    {
+        "name": "asdasdas",
+        "password": "8b928a4e9423b4a9fbd176971b51e82bc3257a0cae8ce505b69da5b1e190f730",
+        "salt_p": "6488084a2551478a837164fc64a1f998"
     }
 ]
