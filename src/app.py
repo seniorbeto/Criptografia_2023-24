@@ -1,5 +1,4 @@
 import tkinter as tk
-from tkinter import ttk
 from screens.home_screen import HomeScreen
 from screens.user_screen import UserScreen
 from screens.loading_screen import LoadingScreen
@@ -25,7 +24,7 @@ class App:
             self.frames[fr] = frame
             frame.grid(row=0, column=0, sticky=tk.NSEW)
 
-        self.current_screen: tk.Frame = HomeScreen
+        self.current_screen = HomeScreen
         self.showHomeScreen()
         self.root.mainloop()
 
