@@ -1,7 +1,7 @@
 from packages.server import Server, ImgPackage
 from packages.imgproc import *
 from PIL import Image
-from packages.imgproc.image_encryptor import ImageEncryptor
+from packages.imgproc.img_cripto_utils import ImageCryptoUtils
 
 import json
 
@@ -54,7 +54,7 @@ class ServerAPI():
         decrypted_images = []
         progress = 0
         for im in images:
-            decrypted = ImageEncryptor.decrypt(im.image, self.password)
+            decrypted = ImageCryptoUtils.decrypt(im.image, self.password)
             new = ImgPackage(im.author, im.date, im.time, im.path,decrypted)
             decrypted_images.append(new)
             yield round((progress/len(images))*100, 2), new
@@ -120,8 +120,8 @@ class ServerAPI():
         # generate users AES key
         
         # encrypt image 
-        image = ImageEncryptor.encrypt(image, self.password, x, y, w, h)
-        ImageEncryptor.generate_image_hash(image)
+        image = ImageCryptoUtils.encrypt(image, self.password, x, y, w, h)
+        ImageCryptoUtils.generate_image_hash(image)
         # upload image
         return self.server.store_image(image, self.username, self.password)
     

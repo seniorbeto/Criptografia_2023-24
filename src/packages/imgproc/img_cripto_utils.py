@@ -5,7 +5,7 @@ from .imgproc import *
 import os
 
 
-class ImageEncryptor:
+class ImageCryptoUtils:
     def __init__(self) -> None:
         pass
 
@@ -19,7 +19,7 @@ class ImageEncryptor:
         """
 
         # get the iv from the image metadata
-        metadata = ImageEncryptor.__read_metadata(img)
+        metadata = ImageCryptoUtils.__read_metadata(img)
         iv = bytes.fromhex(metadata["iv"])
         salt = bytes.fromhex(metadata["salt"])
         x = int(metadata["x"])
@@ -88,7 +88,7 @@ class ImageEncryptor:
                     "width": width,
                     "height": height,
                     }
-        ImageEncryptor.__write_metadata(img, metadata)
+        ImageCryptoUtils.__write_metadata(img, metadata)
 
         # create cipher
         cipher = Cipher(algorithms.AES(key), modes.CTR(iv))
@@ -138,10 +138,10 @@ class ImageEncryptor:
         h = hmac.HMAC(key, hashes.SHA256())
         img_bytes = img.tobytes()
 
-        iv = bytes.fromhex(ImageEncryptor.__read_metadata(img)["iv"])
-        salt = bytes.fromhex(ImageEncryptor.__read_metadata(img)["salt"])
+        iv = bytes.fromhex(ImageCryptoUtils.__read_metadata(img)["iv"])
+        salt = bytes.fromhex(ImageCryptoUtils.__read_metadata(img)["salt"])
         # FIXME 
         # el key debe ir encriptado con RSA del server
         h.update(img_bytes + iv + salt + key)
         signature = h.finalize()
-        ImageEncryptor.__write_metadata(img, {"hash": signature.hex(), "key": key.hex()})
+        ImageCryptoUtils.__write_metadata(img, {"hash": signature.hex(), "key": key.hex()})
