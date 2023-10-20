@@ -9,7 +9,7 @@ class Client:
         self.username = None
         self.password = None
         self.encryptor = None
-        self.server = Server()
+        self.__server = Server()
 
     def get_images(self, num: int | None = -1, username: str | None = None,
                    date: str | None = None, time: str | None = None) -> list:
@@ -39,7 +39,7 @@ class Client:
                 raise Exception("Date must be specified if time is specified")
 
         if username is None:
-            images = self.server.get_images(num=num, username=username, date=date, time=time)
+            images = self.__server.get_images(num=num, username=username, date=date, time=time)
             progress = 0
             for i in images:
                 yield round((progress / len(images)) * 100, 2), i
@@ -47,7 +47,7 @@ class Client:
             return
 
         # if the user is logged in, we will return de decrypted images
-        images = self.server.get_images(num=num, username=username, date=date, time=time)
+        images = self.__server.get_images(num=num, username=username, date=date, time=time)
         decrypted_images = []
         progress = 0
         for im in images:
@@ -66,7 +66,7 @@ class Client:
             password (str): password of the user
         """
 
-        return self.server.create_user(name, password)
+        return self.__server.create_user(name, password)
 
     def logout(self):
         """
@@ -85,7 +85,7 @@ class Client:
             bool: True if the user was logged in, False otherwise
         """
 
-        if self.server.login(name, password):
+        if self.__server.login(name, password):
             self.username = name
             self.password = password
 
@@ -94,8 +94,8 @@ class Client:
 
     def remove_user(self) -> None:
         """Removes the user from the server"""
-        if self.server.login(self.username, self.password):
-            self.server.remove_user(self.username, self.password)
+        if self.__server.login(self.username, self.password):
+            self.__server.remove_user(self.username, self.password)
 
     def upload_photo(self, path: str, x: int = 0, y: int = 0, w: int = 200, h: int = 200) -> None:
         """Uploads a photo to the server
@@ -121,7 +121,7 @@ class Client:
         image = ImageCryptoUtils.encrypt(image, self.password, x, y, w, h)
         ImageCryptoUtils.generate_image_hash(image)
         # upload image
-        return self.server.store_image(image, self.username, self.password)
+        return self.__server.store_image(image, self.username, self.password)
 
     def remove_image(self, date: str, time: str) -> None:
         """Removes the image with the given name
@@ -129,4 +129,4 @@ class Client:
             date (str): date of the image
             time (str): time of the image
         """
-        return self.server.remove_image(self.username, self.password, date, time)
+        return self.__server.remove_image(self.username, self.password, date, time)
