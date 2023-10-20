@@ -60,7 +60,7 @@ class Server():
             raise ValueError("Password must contain at least one special character")
         
         # KDF de la contraseña
-        salt_p = uuid.uuid4().hex
+        salt_p = uuid.uuid4().hex # son 16 bytes = 198 bits
         kdf = Scrypt(
             salt = bytes.fromhex(salt_p),
             length = 32, # 256 bits

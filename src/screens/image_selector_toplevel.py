@@ -72,23 +72,32 @@ class ImageSelectorWindow(tk.Toplevel):
 
     def check_and_send(self):
         try:
-            if self.x_entry.get() == "" and self.y_entry.get() == "" and self.width_entry.get() == "" and self.height_entry.get() == "":
+            x = self.x_entry.get()
+            y = self.y_entry.get()
+            width = self.width_entry.get()
+            height = self.height_entry.get()
+            # remove whitespaces
+            x = x.replace(" ", "")
+            y = y.replace(" ", "")
+            width = width.replace(" ", "")
+            height = height.replace(" ", "")
+            if x == "" and y == "" and width == "" and height == "":
                 x = 0
                 y = 0
                 width = self.image.width
                 height = self.image.height
             else:
-                x = int(self.x_entry.get())
-                y = int(self.y_entry.get())
-                width = int(self.width_entry.get())
-                height = int(self.height_entry.get())
+                x = int(x)
+                y = int(y)
+                width = int(width)
+                height = int(height)
 
             x, y, width, height = self.check_bounds(x, y, width, height)
             self.app.api.upload_photo(self.filepath, x, y, width, height)
             self.app.showUserScreen()
             self.destroy()
         except ValueError as e:
-            messagebox.showerror("Error", "Invalid values. It is not that dificult to put a fucking number in a fucking box.")
+            messagebox.showerror("Error", "Invalid values. Make sure you only wrote integers.")
 
 
     def update_canvas_selection(self):
