@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import messagebox
+import re
 
 class RegisterWindow(tk.Toplevel):
     def __init__(self, app):
@@ -31,6 +32,8 @@ class RegisterWindow(tk.Toplevel):
         button.pack(padx=10, pady=30)
 
     def register(self):
+        user = self.username_entry.get()
+        password = self.password_entry.get()
         try:
             if self.password_entry.get() != self.password_entry_r.get():
                 messagebox.showerror("Error", "Passwords don't match")
@@ -39,5 +42,5 @@ class RegisterWindow(tk.Toplevel):
                 messagebox.showinfo("Success", "User registered successfully")
                 self.destroy()
         except Exception as e:
-            print(e)
-            messagebox.showerror("Error", "Error registering user")
+            messagebox.showerror("Error", f"{e}")
+

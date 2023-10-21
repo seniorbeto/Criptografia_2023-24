@@ -1,7 +1,7 @@
 from .user import User
 from PIL import Image, PngImagePlugin
 from .storage_manager import StorageManager
-from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives import hashes, hmac
 from cryptography.hazmat.primitives.kdf.scrypt  import Scrypt
 import re
 import uuid
@@ -46,9 +46,21 @@ class Server():
         
         # TODO la contraseña estara encriptada con RSA y el servidor tendra la clave privada
         # TODO desencriptar la contraseña con la clave privada del servidor
+        # comprobar que la contraseña cumple los requisitos 
+        # 12 caracteres, 1 mayuscula, 1 minuscula, 1 numero, 1 caracter especial
+        if len(password) < 12:
+            raise ValueError("Password must be at least 12 characters long")
+        elif not re.search("[a-z]", password):
+            raise ValueError("Password must contain at least one lowercase letter")
+        elif not re.search("[A-Z]", password):
+            raise ValueError("Password must contain at least one uppercase letter")
+        elif not re.search("[0-9]", password):
+            raise ValueError("Password must contain at least one number")
+        elif not re.search("[!@#$%^&*()_+-={};':\"\\|,.<>/?]", password):
+            raise ValueError("Password must contain at least one special character")
         
         # KDF de la contraseña
-        salt_p = uuid.uuid4().hex
+        salt_p = uuid.uuid4().hex # son 16 bytes = 198 bits
         kdf = Scrypt(
             salt = bytes.fromhex(salt_p),
             length = 32, # 256 bits
@@ -56,8 +68,7 @@ class Server():
             r = 8,
             p = 1
         )
-        password = kdf.derive(bytes(password, "utf-8")).hex()
-        # print("Derivated  password: ", password)    
+        password = kdf.derive(bytes(password, "utf-8")).hex()  
         # create user
         users = self.__get_users()
         users.append(User(name, password, salt_p))
@@ -70,7 +81,6 @@ class Server():
             name (str): name of the user
             password (str): password of the user (hashed)
         """
-        # print("Trying to remove: ", name, " ", password)
         if name == "":
             raise ValueError("Name cannot be empty")
         elif password == "":
@@ -103,7 +113,19 @@ class Server():
         # checK  tags #TODO
         pass
         # check signature #TODO
-        pass
+        image_metadata = image.info
+        hash = image_metadata["hash"]
+        key = bytes.fromhex(image_metadata["key"]) # FIXME el key habra que desencriptarlo
+        # regenerate hash
+        img_bytes = image.tobytes()
+        iv = bytes.fromhex(image_metadata["iv"])
+        salt = bytes.fromhex(image_metadata["salt"])
+
+        h = hmac.HMAC(key, hashes.SHA256())
+        h.update(img_bytes + iv + salt + key)
+        signature = h.finalize()
+        if hash != signature.hex():
+            raise ValueError("Hashes do not match")
         # check certificate #TODO
         pass
         # store image 
@@ -193,8 +215,6 @@ class Server():
                     p = 1
                 )
                 derivated_pass = kdf.derive(bytes(password, "utf-8")).hex()
-                # print("Derivated password: ", password)
-                # print("readed password:", user.password)
 
                 if user.password == derivated_pass:
                     auth = True

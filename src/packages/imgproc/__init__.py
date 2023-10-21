@@ -1,3 +1,3 @@
-from .imgproc import getColors, updatePixels, hexToRgb, rgbToHex
-
-__all__ = ["getColors", "updatePixels", "hexToRgb", "rgbToHex"]
+from .imgproc import getColors, updatePixels, hexToRgb
+from .img_cripto_utils import ImageCryptoUtils
+__all__ = ["getColors", "updatePixels", "hexToRgb"]
