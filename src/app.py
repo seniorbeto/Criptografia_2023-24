@@ -9,15 +9,12 @@ class App:
     def __init__(self):
         self.root = tk.Tk()
         self.api = Client()
-        self.root.title("La pinga de la ponga")
         self.root.geometry("700x400")
 
         self.root.grid_rowconfigure(0, weight=1)
         self.root.grid_columnconfigure(0, weight=1)
-        self.user = None
 
-        self.loading_progress = 0
-
+        # Create the frames and position them in the grid
         self.frames = {}
         for fr in (HomeScreen, UserScreen, LoadingScreen):
             frame = fr(self)
@@ -26,19 +23,21 @@ class App:
 
         self.current_screen = HomeScreen
         self.showHomeScreen()
+        # Initiate the app
         self.root.mainloop()
 
     def resetProgress(self):
-        self.loading_progress = 0
+        """Resets the progress bar to 0"""
         self.frames[LoadingScreen].progress_bar["value"] = 0
         self.frames[LoadingScreen].update()
 
     def updateProgress(self, progress):
-        self.loading_progress = progress
+        """Updates the progress bar to the given value"""
         self.frames[LoadingScreen].progress_bar["value"] = progress
         self.frames[LoadingScreen].update()
 
     def updateStatus(self, status):
+        """Updates the loading status label to the given value"""
         self.frames[LoadingScreen].update_status(status)
 
     def showScreen(self, name):

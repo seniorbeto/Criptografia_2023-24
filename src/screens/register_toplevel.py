@@ -34,11 +34,12 @@ class RegisterWindow(tk.Toplevel):
     def register(self):
         user = self.username_entry.get()
         password = self.password_entry.get()
+        password2 = self.password_entry_r.get()
         try:
-            if self.password_entry.get() != self.password_entry_r.get():
+            if password2 != password:
                 messagebox.showerror("Error", "Passwords don't match")
             else:
-                self.app.api.register(self.username_entry.get(), self.password_entry.get())
+                self.app.api.register(user, password)
                 messagebox.showinfo("Success", "User registered successfully")
                 self.destroy()
         except Exception as e:

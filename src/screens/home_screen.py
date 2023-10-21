@@ -6,6 +6,10 @@ from .register_toplevel import RegisterWindow
 import platform
 
 class HomeScreen(tk.Frame):
+    """
+    This class represents the home frame shown in the main app. It contains a grid of
+    images that all users have uploaded to the server.
+    """
     def __init__(self, app):
         super().__init__(app.root, bg="#212121")
         self.pack(fill=tk.BOTH, expand=True)
@@ -69,7 +73,7 @@ class HomeScreen(tk.Frame):
         self.user_menu.add_command(label="Register", command=self.register)
 
 
-        # DEVELOPER OPTIONS
+# DEVELOPER OPTIONS ##################################################
         # clear server
         # self.main_menu.add_command(label="CLEAN SERVER", command=self.clean_server)
         # admin mode
@@ -86,6 +90,7 @@ class HomeScreen(tk.Frame):
     def clean_server(self):
         self.app.api.server.clear_server()
         self.initiate_main_display()
+#####################################################################
 
     def show_images(self):
         self.images = []

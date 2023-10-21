@@ -1,10 +1,15 @@
 import tkinter as tk
-from PIL import Image, ImageTk
 import platform
+
+from PIL import Image, ImageTk
 from packages.server.ImgPackage import ImgPackage
 from .image_selector_toplevel import ImageSelectorWindow
 
 class UserScreen(tk.Frame):
+    """
+    This class represents the user frame shown in the main app. It contains a grid of
+    images that the user has uploaded to the server.
+    """
     def __init__(self, app):
         super().__init__(app.root, background="#212121")
         self.app = app
@@ -84,6 +89,7 @@ class UserScreen(tk.Frame):
     def show_images(self):
         self.images = []
         self.app.updateStatus("Decrypting images...")
+        # We get the images from the api. We also get the progress of the decryption
         for progress, i in self.app.api.get_images():
             self.images.append(i)
             self.app.updateProgress(progress)

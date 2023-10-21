@@ -36,30 +36,3 @@ class LoadingScreen(tk.Frame):
         self.status_label.place(relx=0.5, rely=0.7, anchor=tk.CENTER)
         self.update_idletasks()
         self.update()
-
-if __name__ == '__main__':
-    class appTest:
-        def __init__(self):
-            self.root = tk.Tk()
-            self.root.geometry("700x400")
-            self.root.grid_rowconfigure(0, weight=1)
-            self.root.grid_columnconfigure(0, weight=1)
-            self.frames = {}
-            for fr in (LoadingScreen,):
-                frame = fr(self)
-                self.frames[fr] = frame
-                frame.grid(row=0, column=0, sticky=tk.NSEW)
-            self.current_screen: tk.Frame = LoadingScreen
-            self.showLoadingScreen()
-            self.root.mainloop()
-
-        def showScreen(self, name):
-            frame = self.frames[name]
-            self.current_screen = frame
-            frame.tkraise()
-
-        def showLoadingScreen(self):
-            self.frames[LoadingScreen].initiate_main_display()
-            self.showScreen(LoadingScreen)
-
-    appTest()
