@@ -4,12 +4,27 @@ from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from .imgproc import *
 import os
 
+def cache(func):
+    saved = {}
+    def wraps(*args):
+        img = args[0].info
+        passw = args[1]
+        nhash = str((img, passw))
+        if nhash in saved:
+            return saved[nhash]
+        else:
+            res = func(*args)
+            saved[nhash] = res
+            return res
+
+    return wraps
 
 class ImageCryptoUtils:
     def __init__(self) -> None:
         pass
 
     @staticmethod
+    @cache
     def decrypt(img: Image, password: str) -> Image:
         """
         Decrypts an image using AES-192 in CTR mode
