@@ -11,7 +11,7 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from packages.authorities.ursula import Ursula
 from packages.authorities.certificate import Certificate
 from cryptography.hazmat.primitives.asymmetric import padding
-
+from cryptography.exceptions import InvalidSignature
 
 class Server():
     def __init__(self) -> None:
@@ -162,12 +162,8 @@ class Server():
         # check certificate
         certificate_pk = certificate.certificate.public_key()
 
-        print("[DEBUG] TRUSTED CERTIFICATES:")
-        print(self.__trusted_certs)
-        
         trusted = False
         while not trusted:
-            print(f"[DEBUG] Checking certificate: {certificate}")
             if isinstance(certificate, Certificate):
                 trusted = certificate in self.__trusted_certs
                 certificate = certificate.issuer_certificate
@@ -183,15 +179,18 @@ class Server():
         # check sign with public key
         signature = bytes.fromhex(image_metadata["signature"])
         
-        certificate_pk.verify(
-            signature,
-            img_hash,
-            padding.PSS(
-                mgf=padding.MGF1(hashes.SHA256()),
-                salt_length=padding.PSS.MAX_LENGTH
-            ),
-            hashes.SHA256()
-        )
+        try:
+            certificate_pk.verify(
+                signature,
+                img_hash,
+                padding.PSS(
+                    mgf=padding.MGF1(hashes.SHA256()),
+                    salt_length=padding.PSS.MAX_LENGTH
+                ),
+                hashes.SHA256()
+            )
+        except InvalidSignature:
+            raise ValueError("Signature not valid")
         
         image.load()
 

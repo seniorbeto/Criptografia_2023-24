@@ -1,5 +1,3 @@
-
-
 def singleton(class_):
     instances = {}
     def getinstance(*args, **kwargs):
