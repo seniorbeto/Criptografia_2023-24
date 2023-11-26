@@ -1,3 +1,4 @@
+from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.primitives import hashes, hmac
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
@@ -143,7 +144,7 @@ class ImageCryptoUtils:
         return img.info
 
     @staticmethod
-    def generate_image_hash(img: Image) -> None:
+    def generate_image_hash(img: Image, private_key: rsa.RSAPrivateKey) -> None:
         """
         Generates a hash of the image and writes it in the metadata
         :param img: image
@@ -158,5 +159,14 @@ class ImageCryptoUtils:
         # FIXME 
         # el key debe ir encriptado con RSA del server
         h.update(img_bytes + iv + salt + key)
-        signature = h.finalize()
-        ImageCryptoUtils.__write_metadata(img, {"hash": signature.hex(), "key": key.hex()})
+        img_hash = h.finalize()
+        signature = private_key.sign(
+            img_hash, 
+            padding.PSS(
+                mgf=padding.MGF1(hashes.SHA256()),
+                salt_length=padding.PSS.MAX_LENGTH
+            ),
+            hashes.SHA256()
+        )
+
+        ImageCryptoUtils.__write_metadata(img, {"hash": img_hash.hex(), "signature": signature.hex(),"key": key.hex()})

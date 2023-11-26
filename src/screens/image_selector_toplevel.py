@@ -97,7 +97,7 @@ class ImageSelectorWindow(tk.Toplevel):
             self.app.showUserScreen()
             self.destroy()
         except ValueError as e:
-            messagebox.showerror("Error", "Invalid values. Make sure you only wrote integers.")
+            messagebox.showerror("Error", str(e))
 
 
     def update_canvas_selection(self):

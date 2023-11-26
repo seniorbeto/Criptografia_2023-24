@@ -1,7 +1,13 @@
 from packages.server import Server, ImgPackage
 from packages.imgproc import *
 from PIL import Image
+import datetime
+from cryptography import x509
+from cryptography.x509.oid import NameOID
 from packages.imgproc.img_cripto_utils import ImageCryptoUtils
+from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.hazmat.primitives import hashes
+from packages.authorities.perroSanche import PerroSanche
 
 
 class Client:
@@ -10,6 +16,30 @@ class Client:
         self.password = None
         self.encryptor = None
         self.__server = Server()
+        self.__private_key = rsa.generate_private_key(
+            public_exponent=65537,
+            key_size=2048,
+        )
+        self.__subject = x509.Name([
+            x509.NameAttribute(NameOID.COUNTRY_NAME, "ES"),
+            x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, "Madrid"),
+            x509.NameAttribute(NameOID.LOCALITY_NAME, "Colmenarejo"),
+            x509.NameAttribute(NameOID.ORGANIZATION_NAME, "UC3M"),
+            x509.NameAttribute(NameOID.COMMON_NAME, "uc3m.com"),
+        ])
+        csr = x509.CertificateSigningRequestBuilder().subject_name(
+            self.__subject
+        ).sign(self.__private_key, hashes.SHA256())
+        perroSanche = PerroSanche()
+        self.__certificate = perroSanche.issueCertificate(csr)
+
+        self.__trusted_certs = [self.__certificate] + perroSanche.trusted_certs
+            
+    @property
+    def server(self):
+        return self.__server
+    
+    
 
     def get_images(self, num: int | None = -1, username: str | None = None,
                    date: str | None = None, time: str | None = None) -> list:
@@ -119,9 +149,10 @@ class Client:
 
         # encrypt image 
         image = ImageCryptoUtils.encrypt(image, self.password, x, y, w, h)
-        ImageCryptoUtils.generate_image_hash(image)
+        ImageCryptoUtils.generate_image_hash(image, self.__private_key)
+
         # upload image
-        return self.__server.store_image(image, self.username, self.password)
+        return self.__server.store_image(image, self.username, self.password, self.__certificate)
 
     def remove_image(self, date: str, time: str) -> None:
         """Removes the image with the given name

@@ -5,13 +5,48 @@ from cryptography.hazmat.primitives import hashes, hmac
 from cryptography.hazmat.primitives.kdf.scrypt  import Scrypt
 import re
 import uuid
+from cryptography import x509
+from cryptography.x509.oid import NameOID
+from cryptography.hazmat.primitives.asymmetric import rsa
+from packages.authorities.ursula import Ursula
+from packages.authorities.certificate import Certificate
+from cryptography.hazmat.primitives.asymmetric import padding
 
 
 class Server():
     def __init__(self) -> None:
         self.__sm = StorageManager()
         self.__sm.create_directories()
+        self.__subject = x509.Name([
+            x509.NameAttribute(NameOID.COUNTRY_NAME, "AL"),
+            x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, "Germany"),
+            x509.NameAttribute(NameOID.LOCALITY_NAME, "Munich"),
+            x509.NameAttribute(NameOID.ORGANIZATION_NAME, "bmw"),
+            x509.NameAttribute(NameOID.COMMON_NAME, "bmwaitzniert.com"),
+        ])
+        self.__private_key = rsa.generate_private_key(
+            public_exponent=65537,
+            key_size=2048,
+        )
+        csr = x509.CertificateSigningRequestBuilder().subject_name(
+            self.__subject
+        ).sign(self.__private_key, hashes.SHA256())
+        ursula = Ursula()
+        self.__certificate = ursula.issueCertificate(csr)
 
+        self.__trusted_certs = [self.__certificate] + ursula.trusted_certs
+
+
+
+    @property
+    def trusted_certs(self):
+        return self.__trusted_certs
+
+
+    @property
+    def certificate(self):
+        return self.__certificate     
+        
     def __get_users(self) -> list:
         """Returns the list of users
         Returns:
@@ -92,7 +127,7 @@ class Server():
         else:
             raise ValueError("User not found")
 
-    def store_image(self, image: Image, user_name, password):
+    def store_image(self, image: Image, user_name, password, certificate: Certificate):
         """ Stores the image in the server, IMAGE FORMAT: PNG
         Args:
             image_path (str): path to the image 
@@ -110,9 +145,6 @@ class Server():
             raise ValueError("User or password incorrect")
         
         
-        # checK  tags #TODO
-        pass
-        # check signature #TODO
         image_metadata = image.info
         hash = image_metadata["hash"]
         key = bytes.fromhex(image_metadata["key"]) # FIXME el key habra que desencriptarlo
@@ -123,11 +155,44 @@ class Server():
 
         h = hmac.HMAC(key, hashes.SHA256())
         h.update(img_bytes + iv + salt + key)
-        signature = h.finalize()
-        if hash != signature.hex():
+        img_hash = h.finalize()
+        if hash != img_hash.hex():
             raise ValueError("Hashes do not match")
-        # check certificate #TODO
-        pass
+        
+        # check certificate
+        certificate_pk = certificate.certificate.public_key()
+
+        print("[DEBUG] TRUSTED CERTIFICATES:")
+        print(self.__trusted_certs)
+        
+        trusted = False
+        while not trusted:
+            print(f"[DEBUG] Checking certificate: {certificate}")
+            if isinstance(certificate, Certificate):
+                trusted = certificate in self.__trusted_certs
+                certificate = certificate.issuer_certificate
+            elif isinstance(certificate, x509.Certificate):
+                trusted = certificate in self.__trusted_certs
+                break
+            else:
+                raise ValueError("Certificate not valid")
+
+        if not trusted:
+            raise ValueError("Certificate not trusted")
+        
+        # check sign with public key
+        signature = bytes.fromhex(image_metadata["signature"])
+        
+        certificate_pk.verify(
+            signature,
+            img_hash,
+            padding.PSS(
+                mgf=padding.MGF1(hashes.SHA256()),
+                salt_length=padding.PSS.MAX_LENGTH
+            ),
+            hashes.SHA256()
+        )
+
         # store image 
         
         # dev and debug purposes
