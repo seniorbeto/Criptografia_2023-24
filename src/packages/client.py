@@ -27,6 +27,7 @@ class Client:
             x509.NameAttribute(NameOID.ORGANIZATION_NAME, "UC3M"),
             x509.NameAttribute(NameOID.COMMON_NAME, "uc3m.com"),
         ])
+        # para probar certificado auto firmado borrar desde aqui hasta el comentario
         csr = x509.CertificateSigningRequestBuilder().subject_name(
             self.__subject
         ).sign(self.__private_key, hashes.SHA256())
@@ -34,6 +35,31 @@ class Client:
         self.__certificate = perroSanche.issueCertificate(csr)
 
         self.__trusted_certs = [self.__certificate] + perroSanche.trusted_certs
+
+        """ # test certificado auto firmado
+        self.__certificate = x509.CertificateBuilder().subject_name(
+                self.__subject
+            ).issuer_name(
+                self.__subject
+            ).public_key(
+                self.__private_key.public_key()
+            ).serial_number(
+                x509.random_serial_number()
+            ).not_valid_before(
+                datetime.datetime.now(datetime.timezone.utc)
+            ).not_valid_after(
+                # Our certificate will be valid for 10 days
+                datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=10)
+            ).add_extension(
+                x509.SubjectAlternativeName([x509.DNSName("localhost")]),
+                critical=False,
+            # Sign our certificate with our private key
+            ).sign(self.__private_key, hashes.SHA256())
+        
+        self.__certificate = Certificate(self.__certificate)
+
+        self.__trusted_certs = [self.__certificate]
+        """
             
     @property
     def server(self):

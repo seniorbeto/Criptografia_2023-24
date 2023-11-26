@@ -192,10 +192,7 @@ class Server():
             ),
             hashes.SHA256()
         )
-
-        # store image 
         
-        # dev and debug purposes
         image.load()
 
         # META DATA
