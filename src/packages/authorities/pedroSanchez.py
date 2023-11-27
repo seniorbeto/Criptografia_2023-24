@@ -8,7 +8,7 @@ from .certificate import Certificate
 from .singleton import singleton
 
 @singleton
-class PerroSanche:
+class PedroSanchez:
     def __init__(self) -> None:
         self.__private_key = rsa.generate_private_key(
             public_exponent=65537,

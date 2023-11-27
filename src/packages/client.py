@@ -7,7 +7,7 @@ from cryptography.x509.oid import NameOID
 from packages.imgproc.img_cripto_utils import ImageCryptoUtils
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.primitives import hashes
-from packages.authorities import PerroSanche, Certificate
+from packages.authorities import PedroSanchez, Certificate
 import logging
 
 
@@ -44,10 +44,10 @@ class Client:
         csr = x509.CertificateSigningRequestBuilder().subject_name(
             self.__subject
         ).sign(self.__private_key, hashes.SHA256())
-        perroSanche = PerroSanche()
-        self.__certificate = perroSanche.issueCertificate(csr)
+        pedroSanchez = PedroSanchez()
+        self.__certificate = pedroSanchez.issueCertificate(csr)
 
-        self.__trusted_certs = [self.__certificate] + perroSanche.trusted_certs
+        self.__trusted_certs = [self.__certificate] + pedroSanchez.trusted_certs
 
         """ # test certificado auto firmado
         self.__certificate = x509.CertificateBuilder().subject_name(

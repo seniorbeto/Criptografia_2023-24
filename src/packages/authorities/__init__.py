@@ -1,4 +1,4 @@
 from .elPapa import ElPapa
-from .perroSanche import PerroSanche
+from .pedroSanchez import PedroSanchez
 from .ursula import Ursula
 from .certificate import Certificate
