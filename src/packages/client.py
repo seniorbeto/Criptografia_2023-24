@@ -5,7 +5,7 @@ import datetime
 from cryptography import x509
 from cryptography.x509.oid import NameOID
 from packages.imgproc.img_cripto_utils import ImageCryptoUtils
-from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.primitives import hashes
 from packages.authorities import PerroSanche, Certificate
 
@@ -59,7 +59,7 @@ class Client:
 
         self.__trusted_certs = [self.__certificate]
         """
-            
+    # FIXME remove this  
     @property
     def server(self):
         return self.__server
@@ -125,10 +125,21 @@ class Client:
         if not self.__check_servers_certificate(self.__server.certificate):
             raise Exception("Servers certificate not trusted")
         print("[CLIENT]     Servers certificate is trusted")
-        print("[CLIENT]     Obtaining servers public key...")
-        # FIXME get servers public key
+        print("[CLIENT]   Obtaining servers public key...")
+        
+        servers_pk = self.__server.certificate.certificate.public_key()
+        # encrypt password with public key
+        
         print("[CLIENT]   Encrypting password...")
-        # FIXME encrypt password with public key
+        password = password.encode()
+        password = servers_pk.encrypt(
+            password,
+            padding.OAEP(
+                mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                algorithm=hashes.SHA256(),
+                label=None
+            )
+        ).hex()
         print("[CLIENT]  Password encrypted and sended to server")
         return self.__server.create_user(name, password)
 

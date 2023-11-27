@@ -72,14 +72,26 @@ class Server():
             password (str): password of the user (hashed)
         """
         # check if name is unique
+        print("[SERVER] Creating user...")
+        print("[SERVER]   Checking if name is unique...")
         users = self.__get_users()
         for user in users:
             if user.name == name:
                 raise ValueError("Name is already taken")
-            
-        
-        # TODO la contraseña estara encriptada con RSA y el servidor tendra la clave privada
-        # TODO desencriptar la contraseña con la clave privada del servidor
+        print("[SERVER]     Name is unique")
+        print("[SERVER]   Decrypting password...")
+       # decrypt password
+        password = self.__private_key.decrypt(
+            bytes.fromhex(password),
+            padding.OAEP(
+                mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                algorithm=hashes.SHA256(),
+                label=None
+            )
+        ).decode()
+        print("[SERVER]     Password decrypted")
+        print("[SERVER]   Checking password...")
+       
         # comprobar que la contraseña cumple los requisitos 
         # 12 caracteres, 1 mayuscula, 1 minuscula, 1 numero, 1 caracter especial
         if len(password) < 12:
@@ -93,6 +105,8 @@ class Server():
         elif not re.search("[!@#$%^&*()_+-={};':\"\\|,.<>/?]", password):
             raise ValueError("Password must contain at least one special character")
         
+        print("[SERVER]     Password is valid")
+        print("[SERVER]   Generating passwords KDF...")
         # KDF de la contraseña
         salt_p = uuid.uuid4().hex # son 16 bytes = 198 bits
         kdf = Scrypt(
@@ -103,10 +117,13 @@ class Server():
             p = 1
         )
         password = kdf.derive(bytes(password, "utf-8")).hex()  
+        print("[SERVER]     Password KDF generated")
+        print("[SERVER]   Generating user...")
         # create user
         users = self.__get_users()
         users.append(User(name, password, salt_p))
         self.__sm.update_users_json(users)
+        print("[SERVER] User created")
         
 
     def remove_user(self, name: str, password: str):
