@@ -37,7 +37,6 @@ class Server():
         self.__trusted_certs = [self.__certificate] + ursula.trusted_certs
 
 
-
     @property
     def trusted_certs(self):
         return self.__trusted_certs
@@ -134,6 +133,8 @@ class Server():
             camera_name (str): name of the camera
             user_name (str): name of the owner
         """
+        print("[SERVER] received image")
+        
         if user_name == "" or user_name is None:
             raise ValueError("User cannot be empty")
         if image is None:
@@ -141,14 +142,29 @@ class Server():
         
 
         # check if owner is valid and if password is correct
+        print("[SERVER] Checking users credentials...")
         if not self.__authenticate(user_name, password):
             raise ValueError("User or password incorrect")
+        print("[SERVER]   Users credentials are valid")
         
-        
+        print("[SERVER] Checking image integrity")
         image_metadata = image.info
         hash = image_metadata["hash"]
-        key = bytes.fromhex(image_metadata["key"]) # FIXME el key habra que desencriptarlo
+        key = bytes.fromhex(image_metadata["key"]) 
+        # desencriptar la clave con la clave privada del servidor
+        print("[SERVER]   Checking image hash...")
+        print("[SERVER]     Decrypting hash key...")
+        key = self.__private_key.decrypt(
+            key,
+            padding.OAEP(
+                mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                algorithm=hashes.SHA256(),
+                label=None
+            )
+        )
+
         # regenerate hash
+        print("[SERVER]     Regenerating hash...")
         img_bytes = image.tobytes()
         iv = bytes.fromhex(image_metadata["iv"])
         salt = bytes.fromhex(image_metadata["salt"])
@@ -158,10 +174,11 @@ class Server():
         img_hash = h.finalize()
         if hash != img_hash.hex():
             raise ValueError("Hashes do not match")
+        print("[SERVER]     Hashes match")
         
         # check certificate
+        print("[SERVER]   Checking client certificate...")
         certificate_pk = certificate.certificate.public_key()
-
         trusted = False
         while not trusted:
             if isinstance(certificate, Certificate):
@@ -177,8 +194,8 @@ class Server():
             raise ValueError("Certificate not trusted")
         
         # check sign with public key
+        print("[SERVER]   Checking signature...")
         signature = bytes.fromhex(image_metadata["signature"])
-        
         try:
             certificate_pk.verify(
                 signature,
@@ -191,19 +208,21 @@ class Server():
             )
         except InvalidSignature:
             raise ValueError("Signature not valid")
+        print("[SERVER]     Signature is valid")
         
         image.load()
 
+        print("[SERVER]   Image integrity is valid")
+        print("[SERVER] Storing image...")
         # META DATA
         # copy metadata from original image to new image
         info = PngImagePlugin.PngInfo()
         for key, value in image.info.items():
             info.add_text(str(key), str(value))
-        # add new metadata
-        info.add_text("sample tag", "1234")
         
         # store image
         self.__sm.storage_img(image, user_name, info)
+        print("[SERVER] Image stored")
     
     def get_images(self, num: int, username: str | None = None, date: str | None =None, time: str | None = None) -> list:
         """Returns a list of images from the given camera

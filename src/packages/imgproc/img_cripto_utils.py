@@ -144,7 +144,7 @@ class ImageCryptoUtils:
         return img.info
 
     @staticmethod
-    def generate_image_hash(img: Image, private_key: rsa.RSAPrivateKey) -> None:
+    def generate_image_hash(img: Image, private_key: rsa.RSAPrivateKey, server_public_key: rsa.RSAPublicKey ) -> None:
         """
         Generates a hash of the image and writes it in the metadata
         :param img: image
@@ -167,6 +167,16 @@ class ImageCryptoUtils:
                 salt_length=padding.PSS.MAX_LENGTH
             ),
             hashes.SHA256()
+        )
+
+        # encrypt key with server public key
+        key = server_public_key.encrypt(
+            key,
+            padding.OAEP(
+                mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                algorithm=hashes.SHA256(),
+                label=None
+            )
         )
 
         ImageCryptoUtils.__write_metadata(img, {"hash": img_hash.hex(), "signature": signature.hex(),"key": key.hex()})

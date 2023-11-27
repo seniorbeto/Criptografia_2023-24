@@ -7,8 +7,7 @@ from cryptography.x509.oid import NameOID
 from packages.imgproc.img_cripto_utils import ImageCryptoUtils
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import hashes
-from packages.authorities.perroSanche import PerroSanche
-
+from packages.authorities import PerroSanche, Certificate
 
 class Client:
     def __init__(self):
@@ -121,7 +120,16 @@ class Client:
             name (str): name of the user
             password (str): password of the user
         """
-
+        print("[CLIENT] Registering user...")
+        print("[CLIENT]   Checking servers certificate...")
+        if not self.__check_servers_certificate(self.__server.certificate):
+            raise Exception("Servers certificate not trusted")
+        print("[CLIENT]     Servers certificate is trusted")
+        print("[CLIENT]     Obtaining servers public key...")
+        # FIXME get servers public key
+        print("[CLIENT]   Encrypting password...")
+        # FIXME encrypt password with public key
+        print("[CLIENT]  Password encrypted and sended to server")
         return self.__server.create_user(name, password)
 
     def logout(self):
@@ -140,12 +148,25 @@ class Client:
         Returns:
             bool: True if the user was logged in, False otherwise
         """
+        print("[CLIENT] Logging in...")
+        print("[CLIENT]   Checking servers certificate...")
+        if not self.__check_servers_certificate(self.__server.certificate):
+            raise Exception("Servers certificate not trusted")
+        print("[CLIENT]     Servers certificate is trusted")
+        # encrypt password with public key
+        print("[CLIENT]   Encrypting password...")
+        print("[CLIENT]     Obtaining servers public key...")
+        # FIXME
+        print("[CLIENT]     Encrypting password...")
 
+        print("[CLIENT]   Password encrypted and sended to server")
         if self.__server.login(name, password):
             self.username = name
             self.password = password
+            print("[CLIENT] Logged in")
 
         else:
+            print("[CLIENT] User or password incorrect")
             raise ValueError("User or password incorrect")
 
     def remove_user(self) -> None:
@@ -162,6 +183,7 @@ class Client:
             w (int, optional): width of the square to encrypt. Defaults to 200.
             h (int, optional): height of the square to encrypt. Defaults to 200.
         """
+        print("[CLIENT] Uploading image...")
         # check if image is png
         if not path.endswith(".png"):
             raise Exception("Image must be a PNG")
@@ -170,15 +192,24 @@ class Client:
             image = Image.open(path)
         except:
             raise Exception("Image could not be opened check path and format")
-        # encrypt image
-        # generate users AES key
-
+        print("[CLIENT]   Image valid...")
+        print("[CLIENT]   Encrypting image...")
+        print("[CLIENT]     Checking servers certificate...")
+        if not self.__check_servers_certificate(self.__server.certificate):
+            raise Exception("Servers certificate not trusted")
+        print("[CLIENT]       Servers certificate is trusted")
+        
+        print("[CLIENT]     obtaining servers public key...")
+        servers_pk = self.__server.certificate.certificate.public_key()
         # encrypt image 
+        print("[CLIENT]     Encrypting image...")
         image = ImageCryptoUtils.encrypt(image, self.password, x, y, w, h)
-        ImageCryptoUtils.generate_image_hash(image, self.__private_key)
-
+        ImageCryptoUtils.generate_image_hash(image, self.__private_key, servers_pk)
+        print("[CLIENT]       Image encrypted")
+        print("[CLIENT]   Uploading image...")
         # upload image
-        return self.__server.store_image(image, self.username, self.password, self.__certificate)
+        self.__server.store_image(image, self.username, self.password, self.__certificate)
+        print("[CLIENT] Image uploaded successfully")
 
     def remove_image(self, date: str, time: str) -> None:
         """Removes the image with the given name
@@ -187,3 +218,24 @@ class Client:
             time (str): time of the image
         """
         return self.__server.remove_image(self.username, self.password, date, time)
+
+    def __check_servers_certificate(self, certificate: Certificate) -> bool:
+        """
+        Checks if the servers certificate is trusted
+        :param certificate: certificate to check
+        :return: True if the certificate is trusted, False otherwise
+        """
+        # check servers certificate
+        serv_cert = self.__server.certificate
+        # is a trusted certificate?
+        trusted = False
+        while not trusted:
+            if isinstance(certificate, Certificate):
+                trusted = certificate in self.__trusted_certs
+                certificate = certificate.issuer_certificate
+            elif isinstance(certificate, x509.Certificate):
+                trusted = certificate in self.__trusted_certs
+                break
+            else:
+                raise ValueError("Servers certificate not valid")
+        return trusted
