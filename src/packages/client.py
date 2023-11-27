@@ -1,15 +1,91 @@
 from packages.server import Server, ImgPackage
 from packages.imgproc import *
 from PIL import Image
+import datetime
+from cryptography import x509
+from cryptography.x509.oid import NameOID
 from packages.imgproc.img_cripto_utils import ImageCryptoUtils
+from cryptography.hazmat.primitives.asymmetric import rsa, padding
+from cryptography.hazmat.primitives import hashes
+from packages.authorities import PerroSanche, Certificate
+import logging
+
+
 
 
 class Client:
     def __init__(self):
+        # logging
+        self.logger = logging.getLogger('Client')
+        self.logger.setLevel(logging.DEBUG)
+
+        # Crea un controlador para guardar logs en un archivo llamado client.log
+        file_handler = logging.FileHandler('SYSTEM.log')
+        file_handler.setLevel(logging.INFO)
+
+        # Crea un formateador para los logs
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        file_handler.setFormatter(formatter)
+
+        # Agrega el controlador al logger de la clase Client
+        self.logger.addHandler(file_handler)
+
+
+
         self.username = None
         self.password = None
         self.encryptor = None
         self.__server = Server()
+        self.__private_key = rsa.generate_private_key(
+            public_exponent=65537,
+            key_size=2048,
+        )
+        self.__subject = x509.Name([
+            x509.NameAttribute(NameOID.COUNTRY_NAME, "ES"),
+            x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, "Madrid"),
+            x509.NameAttribute(NameOID.LOCALITY_NAME, "Colmenarejo"),
+            x509.NameAttribute(NameOID.ORGANIZATION_NAME, "UC3M"),
+            x509.NameAttribute(NameOID.COMMON_NAME, "uc3m.com"),
+        ])
+        # para probar certificado auto firmado borrar desde aqui hasta el comentario
+        csr = x509.CertificateSigningRequestBuilder().subject_name(
+            self.__subject
+        ).sign(self.__private_key, hashes.SHA256())
+        perroSanche = PerroSanche()
+        self.__certificate = perroSanche.issueCertificate(csr)
+
+        self.__trusted_certs = [self.__certificate] + perroSanche.trusted_certs
+
+        """ # test certificado auto firmado
+        self.__certificate = x509.CertificateBuilder().subject_name(
+                self.__subject
+            ).issuer_name(
+                self.__subject
+            ).public_key(
+                self.__private_key.public_key()
+            ).serial_number(
+                x509.random_serial_number()
+            ).not_valid_before(
+                datetime.datetime.now(datetime.timezone.utc)
+            ).not_valid_after(
+                # Our certificate will be valid for 10 days
+                datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=10)
+            ).add_extension(
+                x509.SubjectAlternativeName([x509.DNSName("localhost")]),
+                critical=False,
+            # Sign our certificate with our private key
+            ).sign(self.__private_key, hashes.SHA256())
+        
+        self.__certificate = Certificate(self.__certificate)
+
+        self.__trusted_certs = [self.__certificate]
+        """
+    # FIXME remove this  
+    @property
+    def server(self):
+        return self.__server
+    
+    
 
     def get_images(self, num: int | None = -1, username: str | None = None,
                    date: str | None = None, time: str | None = None) -> list:
@@ -65,7 +141,27 @@ class Client:
             name (str): name of the user
             password (str): password of the user
         """
-
+        self.logger.info(" Registering user...")
+        self.logger.info("   Checking servers certificate...")
+        if not self.__check_servers_certificate(self.__server.certificate):
+            raise Exception("Servers certificate not trusted")
+        self.logger.info("     Servers certificate is trusted")
+        self.logger.info("   Obtaining servers public key...")
+        
+        servers_pk = self.__server.certificate.certificate.public_key()
+        # encrypt password with public key
+        
+        self.logger.info("   Encrypting password...")
+        password = password.encode()
+        password = servers_pk.encrypt(
+            password,
+            padding.OAEP(
+                mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                algorithm=hashes.SHA256(),
+                label=None
+            )
+        ).hex()
+        self.logger.info("  Password encrypted and sended to server")
         return self.__server.create_user(name, password)
 
     def logout(self):
@@ -84,12 +180,35 @@ class Client:
         Returns:
             bool: True if the user was logged in, False otherwise
         """
-
+        self.logger.info(" Logging in...")
+        self.logger.info("   Checking servers certificate...")
+        if not self.__check_servers_certificate(self.__server.certificate):
+            raise Exception("Servers certificate not trusted")
+        self.logger.info("     Servers certificate is trusted")
+        # encrypt password with public key
+        self.logger.info("   Encrypting password...")
+        servers_pk = self.__server.certificate.certificate.public_key()
+        # encrypt password with public key
+        
+        self.logger.info("   Encrypting password...")
+        password = password.encode()
+        password = servers_pk.encrypt(
+            password,
+            padding.OAEP(
+                mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                algorithm=hashes.SHA256(),
+                label=None
+            )
+        ).hex()
+        
+        self.logger.info("   Password encrypted and sended to server")
         if self.__server.login(name, password):
             self.username = name
             self.password = password
+            self.logger.info(" Logged in")
 
         else:
+            self.logger.info(" User or password incorrect")
             raise ValueError("User or password incorrect")
 
     def remove_user(self) -> None:
@@ -106,6 +225,7 @@ class Client:
             w (int, optional): width of the square to encrypt. Defaults to 200.
             h (int, optional): height of the square to encrypt. Defaults to 200.
         """
+        self.logger.info(" Uploading image...")
         # check if image is png
         if not path.endswith(".png"):
             raise Exception("Image must be a PNG")
@@ -114,14 +234,24 @@ class Client:
             image = Image.open(path)
         except:
             raise Exception("Image could not be opened check path and format")
-        # encrypt image
-        # generate users AES key
-
+        self.logger.info("   Image valid...")
+        self.logger.info("   Encrypting image...")
+        self.logger.info("     Checking servers certificate...")
+        if not self.__check_servers_certificate(self.__server.certificate):
+            raise Exception("Servers certificate not trusted")
+        self.logger.info("       Servers certificate is trusted")
+        
+        self.logger.info("     obtaining servers public key...")
+        servers_pk = self.__server.certificate.certificate.public_key()
         # encrypt image 
+        self.logger.info("     Encrypting image...")
         image = ImageCryptoUtils.encrypt(image, self.password, x, y, w, h)
-        ImageCryptoUtils.generate_image_hash(image)
+        ImageCryptoUtils.generate_image_hash(image, self.__private_key, servers_pk)
+        self.logger.info("       Image encrypted")
+        self.logger.info("   Uploading image...")
         # upload image
-        return self.__server.store_image(image, self.username, self.password)
+        self.__server.store_image(image, self.username, self.password, self.__certificate)
+        self.logger.info(" Image uploaded successfully")
 
     def remove_image(self, date: str, time: str) -> None:
         """Removes the image with the given name
@@ -130,3 +260,24 @@ class Client:
             time (str): time of the image
         """
         return self.__server.remove_image(self.username, self.password, date, time)
+
+    def __check_servers_certificate(self, certificate: Certificate) -> bool:
+        """
+        Checks if the servers certificate is trusted
+        :param certificate: certificate to check
+        :return: True if the certificate is trusted, False otherwise
+        """
+        # check servers certificate
+        serv_cert = self.__server.certificate
+        # is a trusted certificate?
+        trusted = False
+        while not trusted:
+            if isinstance(certificate, Certificate):
+                trusted = certificate in self.__trusted_certs
+                certificate = certificate.issuer_certificate
+            elif isinstance(certificate, x509.Certificate):
+                trusted = certificate in self.__trusted_certs
+                break
+            else:
+                raise ValueError("Servers certificate not valid")
+        return trusted
