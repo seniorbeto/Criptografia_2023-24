@@ -305,6 +305,10 @@ class Server():
             date (str): date of the image
             time (str): time of the image
         """
+        self.logger.info(" Removing image...")
+        # check if user exists and if password is correct
+
+        self.logger.info("   Checking users credentials...")
         if username == "" or username is None:
             raise ValueError("Username cannot be empty")
         elif date == "":
@@ -314,8 +318,9 @@ class Server():
         
         if not self.__authenticate(username, password):
             raise ValueError("User or password incorrect")
-        
+        self.logger.info("     Users credentials are valid")
         self.__sm.remove_image(username, date, time)
+        self.logger.info(" Image removed")
 
     
     def __authenticate(self, name: str, password: str) -> bool:
