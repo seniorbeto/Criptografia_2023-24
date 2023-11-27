@@ -266,13 +266,17 @@ class Server():
         Returns:
             bool: True if the user was logged in, False otherwise
         """
+        print("[SERVER] Logging in user...")
         # update users
         users = self.__get_users()
-
+        print("[SERVER]   Checking if user exists...")
         # check if user exists
         usernames = [ user.name for user in users ]
         if name not in usernames:
             return False
+        print("[SERVER]     User exists")
+
+        print("[SERVER]   Checking password...")
         
         # check if password is correct
         return self.__authenticate(name, password)
@@ -301,6 +305,19 @@ class Server():
         # get users salt and password
         auth = False
         users = self.__get_users()
+
+        # decrypt password
+        print("[SERVER]     Decrypting password...")
+        password = self.__private_key.decrypt(
+            bytes.fromhex(password),
+            padding.OAEP(
+                mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                algorithm=hashes.SHA256(),
+                label=None
+            )
+        ).decode()
+        print("[SERVER]       Password decrypted")
+
         for user in users:
             if user.name == name:
                 # generate kdf with salt
@@ -315,6 +332,7 @@ class Server():
 
                 if user.password == derivated_pass:
                     auth = True
+                    print("[SERVER]     Password is correct")
                     # update salt and password
                     user.salt_p = uuid.uuid4().hex
                     kdf = Scrypt(

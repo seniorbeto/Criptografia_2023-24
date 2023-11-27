@@ -166,10 +166,20 @@ class Client:
         print("[CLIENT]     Servers certificate is trusted")
         # encrypt password with public key
         print("[CLIENT]   Encrypting password...")
-        print("[CLIENT]     Obtaining servers public key...")
-        # FIXME
-        print("[CLIENT]     Encrypting password...")
-
+        servers_pk = self.__server.certificate.certificate.public_key()
+        # encrypt password with public key
+        
+        print("[CLIENT]   Encrypting password...")
+        password = password.encode()
+        password = servers_pk.encrypt(
+            password,
+            padding.OAEP(
+                mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                algorithm=hashes.SHA256(),
+                label=None
+            )
+        ).hex()
+        
         print("[CLIENT]   Password encrypted and sended to server")
         if self.__server.login(name, password):
             self.username = name
