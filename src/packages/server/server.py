@@ -12,9 +12,26 @@ from packages.authorities.ursula import Ursula
 from packages.authorities.certificate import Certificate
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.exceptions import InvalidSignature
+import logging
 
 class Server():
     def __init__(self) -> None:
+        # logging
+        # Configura el logger para la clase Server
+        self.logger = logging.getLogger('Server')
+        self.logger.setLevel(logging.DEBUG)
+
+        # Crea un controlador para guardar logs en un archivo llamado server.log
+        file_handler = logging.FileHandler('server.log')
+        file_handler.setLevel(logging.INFO)
+
+        # Crea un formateador para los logs
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        file_handler.setFormatter(formatter)
+
+        # Agrega el controlador al logger de la clase Server
+        self.logger.addHandler(file_handler)
+
         self.__sm = StorageManager()
         self.__sm.create_directories()
         self.__subject = x509.Name([
@@ -72,14 +89,14 @@ class Server():
             password (str): password of the user (hashed)
         """
         # check if name is unique
-        print("[SERVER] Creating user...")
-        print("[SERVER]   Checking if name is unique...")
+        self.logger.info(" Creating user...")
+        self.logger.info("   Checking if name is unique...")
         users = self.__get_users()
         for user in users:
             if user.name == name:
                 raise ValueError("Name is already taken")
-        print("[SERVER]     Name is unique")
-        print("[SERVER]   Decrypting password...")
+        self.logger.info("     Name is unique")
+        self.logger.info("   Decrypting password...")
        # decrypt password
         password = self.__private_key.decrypt(
             bytes.fromhex(password),
@@ -89,8 +106,8 @@ class Server():
                 label=None
             )
         ).decode()
-        print("[SERVER]     Password decrypted")
-        print("[SERVER]   Checking password...")
+        self.logger.info("     Password decrypted")
+        self.logger.info("   Checking password...")
        
         # comprobar que la contraseña cumple los requisitos 
         # 12 caracteres, 1 mayuscula, 1 minuscula, 1 numero, 1 caracter especial
@@ -105,8 +122,8 @@ class Server():
         elif not re.search("[!@#$%^&*()_+-={};':\"\\|,.<>/?]", password):
             raise ValueError("Password must contain at least one special character")
         
-        print("[SERVER]     Password is valid")
-        print("[SERVER]   Generating passwords KDF...")
+        self.logger.info("     Password is valid")
+        self.logger.info("   Generating passwords KDF...")
         # KDF de la contraseña
         salt_p = uuid.uuid4().hex # son 16 bytes = 198 bits
         kdf = Scrypt(
@@ -117,13 +134,13 @@ class Server():
             p = 1
         )
         password = kdf.derive(bytes(password, "utf-8")).hex()  
-        print("[SERVER]     Password KDF generated")
-        print("[SERVER]   Generating user...")
+        self.logger.info("     Password KDF generated")
+        self.logger.info("   Generating user...")
         # create user
         users = self.__get_users()
         users.append(User(name, password, salt_p))
         self.__sm.update_users_json(users)
-        print("[SERVER] User created")
+        self.logger.info(" User created")
         
 
     def remove_user(self, name: str, password: str):
@@ -150,7 +167,7 @@ class Server():
             camera_name (str): name of the camera
             user_name (str): name of the owner
         """
-        print("[SERVER] received image")
+        self.logger.info(" received image")
         
         if user_name == "" or user_name is None:
             raise ValueError("User cannot be empty")
@@ -159,18 +176,18 @@ class Server():
         
 
         # check if owner is valid and if password is correct
-        print("[SERVER] Checking users credentials...")
+        self.logger.info(" Checking users credentials...")
         if not self.__authenticate(user_name, password):
             raise ValueError("User or password incorrect")
-        print("[SERVER]   Users credentials are valid")
+        self.logger.info("   Users credentials are valid")
         
-        print("[SERVER] Checking image integrity")
+        self.logger.info(" Checking image integrity")
         image_metadata = image.info
         hash = image_metadata["hash"]
         key = bytes.fromhex(image_metadata["key"]) 
         # desencriptar la clave con la clave privada del servidor
-        print("[SERVER]   Checking image hash...")
-        print("[SERVER]     Decrypting hash key...")
+        self.logger.info("   Checking image hash...")
+        self.logger.info("     Decrypting hash key...")
         key = self.__private_key.decrypt(
             key,
             padding.OAEP(
@@ -181,7 +198,7 @@ class Server():
         )
 
         # regenerate hash
-        print("[SERVER]     Regenerating hash...")
+        self.logger.info("     Regenerating hash...")
         img_bytes = image.tobytes()
         iv = bytes.fromhex(image_metadata["iv"])
         salt = bytes.fromhex(image_metadata["salt"])
@@ -191,10 +208,10 @@ class Server():
         img_hash = h.finalize()
         if hash != img_hash.hex():
             raise ValueError("Hashes do not match")
-        print("[SERVER]     Hashes match")
+        self.logger.info("     Hashes match")
         
         # check certificate
-        print("[SERVER]   Checking client certificate...")
+        self.logger.info("   Checking client certificate...")
         certificate_pk = certificate.certificate.public_key()
         trusted = False
         while not trusted:
@@ -211,7 +228,7 @@ class Server():
             raise ValueError("Certificate not trusted")
         
         # check sign with public key
-        print("[SERVER]   Checking signature...")
+        self.logger.info("   Checking signature...")
         signature = bytes.fromhex(image_metadata["signature"])
         try:
             certificate_pk.verify(
@@ -225,12 +242,12 @@ class Server():
             )
         except InvalidSignature:
             raise ValueError("Signature not valid")
-        print("[SERVER]     Signature is valid")
+        self.logger.info("     Signature is valid")
         
         image.load()
 
-        print("[SERVER]   Image integrity is valid")
-        print("[SERVER] Storing image...")
+        self.logger.info("   Image integrity is valid")
+        self.logger.info(" Storing image...")
         # META DATA
         # copy metadata from original image to new image
         info = PngImagePlugin.PngInfo()
@@ -239,7 +256,7 @@ class Server():
         
         # store image
         self.__sm.storage_img(image, user_name, info)
-        print("[SERVER] Image stored")
+        self.logger.info(" Image stored")
     
     def get_images(self, num: int, username: str | None = None, date: str | None =None, time: str | None = None) -> list:
         """Returns a list of images from the given camera
@@ -266,17 +283,17 @@ class Server():
         Returns:
             bool: True if the user was logged in, False otherwise
         """
-        print("[SERVER] Logging in user...")
+        self.logger.info(" Logging in user...")
         # update users
         users = self.__get_users()
-        print("[SERVER]   Checking if user exists...")
+        self.logger.info("   Checking if user exists...")
         # check if user exists
         usernames = [ user.name for user in users ]
         if name not in usernames:
             return False
-        print("[SERVER]     User exists")
+        self.logger.info("     User exists")
 
-        print("[SERVER]   Checking password...")
+        self.logger.info("   Checking password...")
         
         # check if password is correct
         return self.__authenticate(name, password)
@@ -307,7 +324,7 @@ class Server():
         users = self.__get_users()
 
         # decrypt password
-        print("[SERVER]     Decrypting password...")
+        self.logger.info("     Decrypting password...")
         password = self.__private_key.decrypt(
             bytes.fromhex(password),
             padding.OAEP(
@@ -316,7 +333,7 @@ class Server():
                 label=None
             )
         ).decode()
-        print("[SERVER]       Password decrypted")
+        self.logger.info("       Password decrypted")
 
         for user in users:
             if user.name == name:
@@ -332,7 +349,7 @@ class Server():
 
                 if user.password == derivated_pass:
                     auth = True
-                    print("[SERVER]     Password is correct")
+                    self.logger.info("     Password is correct")
                     # update salt and password
                     user.salt_p = uuid.uuid4().hex
                     kdf = Scrypt(
@@ -355,4 +372,4 @@ class Server():
         self.__sm.delete_all_images()
         self.__sm.delete_all_users()
         self.__sm.create_directories()
-        print("Server cleared")
+        self.logger.info("Server cleared")

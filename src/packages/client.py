@@ -8,9 +8,30 @@ from packages.imgproc.img_cripto_utils import ImageCryptoUtils
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.primitives import hashes
 from packages.authorities import PerroSanche, Certificate
+import logging
+
+
+
 
 class Client:
     def __init__(self):
+        # logging
+        self.logger = logging.getLogger('Client')
+        self.logger.setLevel(logging.DEBUG)
+
+        # Crea un controlador para guardar logs en un archivo llamado client.log
+        file_handler = logging.FileHandler('client.log')
+        file_handler.setLevel(logging.INFO)
+
+        # Crea un formateador para los logs
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        file_handler.setFormatter(formatter)
+
+        # Agrega el controlador al logger de la clase Client
+        self.logger.addHandler(file_handler)
+
+
+
         self.username = None
         self.password = None
         self.encryptor = None
@@ -120,17 +141,17 @@ class Client:
             name (str): name of the user
             password (str): password of the user
         """
-        print("[CLIENT] Registering user...")
-        print("[CLIENT]   Checking servers certificate...")
+        self.logger.info(" Registering user...")
+        self.logger.info("   Checking servers certificate...")
         if not self.__check_servers_certificate(self.__server.certificate):
             raise Exception("Servers certificate not trusted")
-        print("[CLIENT]     Servers certificate is trusted")
-        print("[CLIENT]   Obtaining servers public key...")
+        self.logger.info("     Servers certificate is trusted")
+        self.logger.info("   Obtaining servers public key...")
         
         servers_pk = self.__server.certificate.certificate.public_key()
         # encrypt password with public key
         
-        print("[CLIENT]   Encrypting password...")
+        self.logger.info("   Encrypting password...")
         password = password.encode()
         password = servers_pk.encrypt(
             password,
@@ -140,7 +161,7 @@ class Client:
                 label=None
             )
         ).hex()
-        print("[CLIENT]  Password encrypted and sended to server")
+        self.logger.info("  Password encrypted and sended to server")
         return self.__server.create_user(name, password)
 
     def logout(self):
@@ -159,17 +180,17 @@ class Client:
         Returns:
             bool: True if the user was logged in, False otherwise
         """
-        print("[CLIENT] Logging in...")
-        print("[CLIENT]   Checking servers certificate...")
+        self.logger.info(" Logging in...")
+        self.logger.info("   Checking servers certificate...")
         if not self.__check_servers_certificate(self.__server.certificate):
             raise Exception("Servers certificate not trusted")
-        print("[CLIENT]     Servers certificate is trusted")
+        self.logger.info("     Servers certificate is trusted")
         # encrypt password with public key
-        print("[CLIENT]   Encrypting password...")
+        self.logger.info("   Encrypting password...")
         servers_pk = self.__server.certificate.certificate.public_key()
         # encrypt password with public key
         
-        print("[CLIENT]   Encrypting password...")
+        self.logger.info("   Encrypting password...")
         password = password.encode()
         password = servers_pk.encrypt(
             password,
@@ -180,14 +201,14 @@ class Client:
             )
         ).hex()
         
-        print("[CLIENT]   Password encrypted and sended to server")
+        self.logger.info("   Password encrypted and sended to server")
         if self.__server.login(name, password):
             self.username = name
             self.password = password
-            print("[CLIENT] Logged in")
+            self.logger.info(" Logged in")
 
         else:
-            print("[CLIENT] User or password incorrect")
+            self.logger.info(" User or password incorrect")
             raise ValueError("User or password incorrect")
 
     def remove_user(self) -> None:
@@ -204,7 +225,7 @@ class Client:
             w (int, optional): width of the square to encrypt. Defaults to 200.
             h (int, optional): height of the square to encrypt. Defaults to 200.
         """
-        print("[CLIENT] Uploading image...")
+        self.logger.info(" Uploading image...")
         # check if image is png
         if not path.endswith(".png"):
             raise Exception("Image must be a PNG")
@@ -213,24 +234,24 @@ class Client:
             image = Image.open(path)
         except:
             raise Exception("Image could not be opened check path and format")
-        print("[CLIENT]   Image valid...")
-        print("[CLIENT]   Encrypting image...")
-        print("[CLIENT]     Checking servers certificate...")
+        self.logger.info("   Image valid...")
+        self.logger.info("   Encrypting image...")
+        self.logger.info("     Checking servers certificate...")
         if not self.__check_servers_certificate(self.__server.certificate):
             raise Exception("Servers certificate not trusted")
-        print("[CLIENT]       Servers certificate is trusted")
+        self.logger.info("       Servers certificate is trusted")
         
-        print("[CLIENT]     obtaining servers public key...")
+        self.logger.info("     obtaining servers public key...")
         servers_pk = self.__server.certificate.certificate.public_key()
         # encrypt image 
-        print("[CLIENT]     Encrypting image...")
+        self.logger.info("     Encrypting image...")
         image = ImageCryptoUtils.encrypt(image, self.password, x, y, w, h)
         ImageCryptoUtils.generate_image_hash(image, self.__private_key, servers_pk)
-        print("[CLIENT]       Image encrypted")
-        print("[CLIENT]   Uploading image...")
+        self.logger.info("       Image encrypted")
+        self.logger.info("   Uploading image...")
         # upload image
         self.__server.store_image(image, self.username, self.password, self.__certificate)
-        print("[CLIENT] Image uploaded successfully")
+        self.logger.info(" Image uploaded successfully")
 
     def remove_image(self, date: str, time: str) -> None:
         """Removes the image with the given name
