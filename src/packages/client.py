@@ -20,7 +20,7 @@ class Client:
         self.logger.setLevel(logging.DEBUG)
 
         # Crea un controlador para guardar logs en un archivo llamado client.log
-        file_handler = logging.FileHandler('client.log')
+        file_handler = logging.FileHandler('SYSTEM.log')
         file_handler.setLevel(logging.INFO)
 
         # Crea un formateador para los logs
