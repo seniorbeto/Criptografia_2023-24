@@ -18,22 +18,15 @@ class Client:
         # logging
         self.logger = logging.getLogger('Client')
         self.logger.setLevel(logging.DEBUG)
-
-        # Crea un controlador para guardar logs en un archivo llamado client.log
         file_handler = logging.FileHandler('SYSTEM.log')
         file_handler.setLevel(logging.INFO)
-
-        # Crea un formateador para los logs
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         file_handler.setFormatter(formatter)
-
-        # Agrega el controlador al logger de la clase Client
         self.logger.addHandler(file_handler)
-
-
 
         self.username = None
         self.password = None
+        self.__plain_pass = None
         self.encryptor = None
         self.__server = Server()
         self.__private_key = rsa.generate_private_key(
@@ -127,7 +120,7 @@ class Client:
         decrypted_images = []
         progress = 0
         for im in images:
-            decrypted = ImageCryptoUtils.decrypt(im.image, self.password)
+            decrypted = ImageCryptoUtils.decrypt(im.image, self.__plain_pass)
             new = ImgPackage(im.author, im.date, im.time, im.path, decrypted)
             decrypted_images.append(new)
             yield round((progress / len(images)) * 100, 2), new
@@ -191,6 +184,7 @@ class Client:
         # encrypt password with public key
         
         self.logger.info("   Encrypting password...")
+        plain_pass = password
         password = password.encode()
         password = servers_pk.encrypt(
             password,
@@ -203,6 +197,7 @@ class Client:
         
         self.logger.info("   Password encrypted and sended to server")
         if self.__server.login(name, password):
+            self.__plain_pass = plain_pass
             self.username = name
             self.password = password
             self.logger.info(" Logged in")
@@ -245,7 +240,7 @@ class Client:
         servers_pk = self.__server.certificate.certificate.public_key()
         # encrypt image 
         self.logger.info("     Encrypting image...")
-        image = ImageCryptoUtils.encrypt(image, self.password, x, y, w, h)
+        image = ImageCryptoUtils.encrypt(image, self.__plain_pass, x, y, w, h)
         ImageCryptoUtils.generate_image_hash(image, self.__private_key, servers_pk)
         self.logger.info("       Image encrypted")
         self.logger.info("   Uploading image...")
