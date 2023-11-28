@@ -73,10 +73,10 @@ class Client:
 
         self.__trusted_certs = [self.__certificate]
         """
-    # FIXME remove this  
+    """    # FIXME remove this  
     @property
     def server(self):
-        return self.__server
+        return self.__server"""
     
     
 
