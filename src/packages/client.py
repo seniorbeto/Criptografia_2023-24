@@ -105,6 +105,7 @@ class Client:
 
         if time is not None:
             if date is None:
+                self.logger.error("Date must be specified if time is specified")
                 raise Exception("Date must be specified if time is specified")
 
         if username is None:
@@ -137,6 +138,7 @@ class Client:
         self.logger.info(" Registering user...")
         self.logger.info("   Checking servers certificate...")
         if not self.__check_servers_certificate(self.__server.certificate):
+            self.logger.error("Servers certificate not trusted")
             raise Exception("Servers certificate not trusted")
         self.logger.info("     Servers certificate is trusted")
         self.logger.info("   Obtaining servers public key...")
@@ -176,6 +178,7 @@ class Client:
         self.logger.info(" Logging in...")
         self.logger.info("   Checking servers certificate...")
         if not self.__check_servers_certificate(self.__server.certificate):
+            self.logger.error("Servers certificate not ")
             raise Exception("Servers certificate not trusted")
         self.logger.info("     Servers certificate is trusted")
         # encrypt password with public key
@@ -203,7 +206,7 @@ class Client:
             self.logger.info(" Logged in")
 
         else:
-            self.logger.info(" User or password incorrect")
+            self.logger.error("User or password incorrect")
             raise ValueError("User or password incorrect")
 
     def remove_user(self) -> None:
@@ -223,16 +226,19 @@ class Client:
         self.logger.info(" Uploading image...")
         # check if image is png
         if not path.endswith(".png"):
+            self.logger.error("Image must be a PNG")
             raise Exception("Image must be a PNG")
         # try to open image
         try:
             image = Image.open(path)
         except:
+            self.logger.error("Image could not be opened check path and format")
             raise Exception("Image could not be opened check path and format")
         self.logger.info("   Image valid...")
         self.logger.info("   Encrypting image...")
         self.logger.info("     Checking servers certificate...")
         if not self.__check_servers_certificate(self.__server.certificate):
+            self.logger.error("Servers certificate not trusted")
             raise Exception("Servers certificate not trusted")
         self.logger.info("       Servers certificate is trusted")
         
@@ -274,5 +280,6 @@ class Client:
                 trusted = certificate in self.__trusted_certs
                 break
             else:
+                self.logger.error("Servers certificate not valid")
                 raise ValueError("Servers certificate not valid")
         return trusted

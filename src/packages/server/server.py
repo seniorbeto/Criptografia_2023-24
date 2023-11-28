@@ -13,6 +13,7 @@ from packages.authorities.certificate import Certificate
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.exceptions import InvalidSignature
 import logging
+import datetime
 
 class Server():
     def __init__(self) -> None:
@@ -213,19 +214,8 @@ class Server():
         # check certificate
         self.logger.info("   Checking client certificate...")
         certificate_pk = certificate.certificate.public_key()
-        trusted = False
-        while not trusted:
-            if isinstance(certificate, Certificate):
-                trusted = certificate in self.__trusted_certs
-                certificate = certificate.issuer_certificate
-            elif isinstance(certificate, x509.Certificate):
-                trusted = certificate in self.__trusted_certs
-                break
-            else:
-                raise ValueError("Certificate not valid")
-
-        if not trusted:
-            raise ValueError("Certificate not trusted")
+        
+        self.__verify_certificate(certificate)
         
         # check sign with public key
         self.logger.info("   Checking signature...")
@@ -378,3 +368,40 @@ class Server():
         self.__sm.delete_all_users()
         self.__sm.create_directories()
         self.logger.info("Server cleared")
+
+    def __verify_certificate(self, cert:Certificate):
+        """Verifies the given certificate
+        Args:
+            cert (Certificate): certificate to be verified
+        """
+        #check if is valid
+        x509cert = cert.certificate
+        issuerCert = cert.issuer_certificate
+
+        issuerCert.certificate.public_key().verify(
+            x509cert.signature,
+            x509cert.tbs_certificate_bytes,
+            padding.PKCS1v15(),
+            x509cert.signature_hash_algorithm,
+        )
+
+
+        # check if is expired
+        if x509cert.not_valid_after < datetime.datetime.now():
+            raise ValueError("Certificate is expired")
+        if x509cert.not_valid_before > datetime.datetime.now():
+            raise ValueError("Certificate is not valid yet")
+        # check if is trusted
+        trusted = False
+        while not trusted:
+            if isinstance(cert, Certificate):
+                trusted = cert in self.__trusted_certs
+                cert = cert.issuer_certificate
+            elif isinstance(cert, x509.Certificate):
+                trusted = cert in self.__trusted_certs
+                break
+            else:
+                raise ValueError("Certificate not valid")
+
+        if not trusted:
+            raise ValueError("Certificate not trusted")

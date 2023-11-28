@@ -41,6 +41,10 @@ class Ursula:
     def certificate(self):
         return self.__certificate
     
+    def isRevoked(self, certificate: Certificate):
+        return certificate in self.__revoked_certificates
+    
+    
     def issueCertificate(self, csr):
         certificate = x509.CertificateBuilder().subject_name(
                 csr.subject
@@ -58,7 +62,3 @@ class Ursula:
             ).sign(self.__private_key, hashes.SHA256())
         
         return Certificate(certificate, self.__certificate) 
-
-    
-
-    

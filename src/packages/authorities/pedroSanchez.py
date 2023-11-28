@@ -58,7 +58,3 @@ class PedroSanchez:
         
         
         return  Certificate(certificate, self.__certificate)
-
-    
-
-    
