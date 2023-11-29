@@ -374,27 +374,29 @@ class Server():
         Args:
             cert (Certificate): certificate to be verified
         """
-        #check if is valid
-        x509cert = cert.certificate
-        issuerCert = cert.issuer_certificate
 
-        issuerCert.certificate.public_key().verify(
-            x509cert.signature,
-            x509cert.tbs_certificate_bytes,
-            padding.PKCS1v15(),
-            x509cert.signature_hash_algorithm,
-        )
-
-
-        # check if is expired
-        if x509cert.not_valid_after < datetime.datetime.now():
-            raise ValueError("Certificate is expired")
-        if x509cert.not_valid_before > datetime.datetime.now():
-            raise ValueError("Certificate is not valid yet")
-        # check if is trusted
         trusted = False
         while not trusted:
             if isinstance(cert, Certificate):
+                # check validity
+                x509cert = cert.certificate
+                issuerCert = cert.issuer_certificate
+
+                # check if is expired
+                if x509cert.not_valid_after < datetime.datetime.now():
+                    raise ValueError("Certificate is expired")
+                if x509cert.not_valid_before > datetime.datetime.now():
+                    raise ValueError("Certificate is not valid yet")
+                if isinstance(issuerCert, Certificate):
+                    issuerCert = issuerCert.certificate
+                    
+                issuerCert.public_key().verify(
+                    x509cert.signature,
+                    x509cert.tbs_certificate_bytes,
+                    padding.PKCS1v15(),
+                    x509cert.signature_hash_algorithm,
+                )
+                # check if trusted
                 trusted = cert in self.__trusted_certs
                 cert = cert.issuer_certificate
             elif isinstance(cert, x509.Certificate):
