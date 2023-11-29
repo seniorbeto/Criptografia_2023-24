@@ -2,9 +2,10 @@ import datetime
 from cryptography import x509
 from cryptography.x509.oid import NameOID
 from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from .certificate import Certificate
 from .singleton import singleton
+
 
 @singleton
 class ElPapa:
@@ -55,7 +56,17 @@ class ElPapa:
         return self.__subject
     
 
-    def issueCertificate(self, csr) -> x509.Certificate:
+    def issueCertificate(self, csr:x509.CertificateSigningRequest) -> x509.Certificate:
+        # check if csr is signed by this authority
+        csr_pk = csr.public_key()
+        csr_pk.verify(
+            csr.signature,
+            csr.tbs_certrequest_bytes,
+            padding.PKCS1v15(),
+            csr.signature_hash_algorithm,
+        )
+
+        # create the certificate
         x509certificate = x509.CertificateBuilder().subject_name(
                 csr.subject
             ).issuer_name(

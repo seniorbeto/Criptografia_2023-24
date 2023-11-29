@@ -2,7 +2,7 @@ import datetime
 from cryptography import x509
 from cryptography.x509.oid import NameOID
 from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from .elPapa import ElPapa
 
 from .certificate import Certificate
@@ -46,6 +46,14 @@ class Ursula:
     
     
     def issueCertificate(self, csr):
+        csr_pk = csr.public_key()
+        csr_pk.verify(
+            csr.signature,
+            csr.tbs_certrequest_bytes,
+            padding.PKCS1v15(),
+            csr.signature_hash_algorithm,
+        )
+
         certificate = x509.CertificateBuilder().subject_name(
                 csr.subject
             ).issuer_name(
