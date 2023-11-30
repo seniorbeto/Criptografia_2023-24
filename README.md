@@ -1,46 +1,3 @@
-<!-----
-
-You have some errors, warnings, or alerts. If you are using reckless mode, turn it off to see inline alerts.
-* ERRORs: 0
-* WARNINGs: 0
-* ALERTS: 2
-
-Conversion time: 1.637 seconds.
-
-
-Using this HTML file:
-
-1. Paste this output into your source file.
-2. See the notes and action items below regarding this conversion run.
-3. Check the rendered output (headings, lists, code blocks, tables) for proper
-   formatting and use a linkchecker before you publish this page.
-
-Conversion notes:
-
-* Docs to Markdown version 1.0β35
-* Tue Nov 28 2023 11:22:52 GMT-0800 (PST)
-* Source doc: Memoria 2
-* This document has images: check for >>>>>  gd2md-html alert:  inline image link in generated source and store images to your server. NOTE: Images in exported zip file from Google Docs may not appear in  the same order as they do in your doc. Please check the images!
-
-
-WARNING:
-You have 7 H1 headings. You may want to use the "H1 -> H2" option to demote all headings by one level.
-
------>
-
-
-<p style="color: red; font-weight: bold">>>>>>  gd2md-html alert:  ERRORs: 0; WARNINGs: 1; ALERTS: 2.</p>
-<ul style="color: red; font-weight: bold"><li>See top comment block for details on ERRORs and WARNINGs. <li>In the converted Markdown or HTML, search for inline alerts that start with >>>>>  gd2md-html alert:  for specific instances that need correction.</ul>
-
-<p style="color: red; font-weight: bold">Links to alert messages:</p><a href="#gdcalert1">alert1</a>
-<a href="#gdcalert2">alert2</a>
-
-<p style="color: red; font-weight: bold">>>>>> PLEASE check and correct alert issues and delete this message and the inline alerts.<hr></p>
-
-
-<p>
- 
-</p>
 <h1>Memoria de la entrega 2</h1>
 
 
@@ -73,15 +30,6 @@ El propósito general de la aplicación es encriptar localmente secciones de im�
 <h2>Estructura de la aplicación</h2>
 
 
-<p>
-
-
-<p id="gdcalert1" ><span style="color: red; font-weight: bold">>>>>>  gd2md-html alert: inline image link here (to images/image1.png). Store image on your image server and adjust path/filename/extension if necessary. </span><br>(<a href="#">Back to top</a>)(<a href="#gdcalert2">Next alert</a>)<br><span style="color: red; font-weight: bold">>>>>> </span></p>
-
-
-<img src="images/image1.png" width="" alt="alt_text" title="image_tooltip">
-
-</p>
 <p>
 La aplicación está compuesta de dos partes muy diferenciadas, el lado del cliente y el lado del servidor.
 </p>
@@ -217,15 +165,7 @@ Para los procesos que lo requieren, las claves públicas siempre se obtienen de 
 <p>
 Consideramos que nuestra aplicación es considerablemente compleja, en lo que a su funcionamiento interno se refiere. Hemos preferido afianzar una correcta y potente implementación de nuestros conocimientos en lugar de centrarnos en la parte estética de la misma. De esta manera, hacemos que sea muy fácil extender el código en el futuro y que quede muy claro cuál es la estructura de nuestro código, el cual podría ser modelizado resumidamente de la siguiente manera:
 </p>
-<p>
 
-
-<p id="gdcalert2" ><span style="color: red; font-weight: bold">>>>>>  gd2md-html alert: inline image link here (to images/image2.png). Store image on your image server and adjust path/filename/extension if necessary. </span><br>(<a href="#">Back to top</a>)(<a href="#gdcalert3">Next alert</a>)<br><span style="color: red; font-weight: bold">>>>>> </span></p>
-
-
-<img src="images/image2.png" width="" alt="alt_text" title="image_tooltip">
-
-</p>
 <p>
 En el diagrama, se puede contemplar cómo es posible obtener imágenes del servidor desde la ventana principal así como desde la ventana de usuario, esto es porque es posible pedir imágenes al servidor a través del cliente sin haberse autenticado inicialmente, de esta forma, el cliente dará a la interfaz las imágenes tal y como se las ha entregado el servidor, es decir; encriptadas. Cabe destacar, además, que es notable cómo no es posible que ninguna imagen salga del lado del cliente sin encriptar. 
 </p>
@@ -293,16 +233,4 @@ Además ha sido necesario implementar algunos patrones de diseño como singleton
 
 <p>
 <a href="https://github.com/Ragarr/Criptografia_2023-24">https://github.com/Ragarr/Criptografia_2023-24</a>
-</p>
-<h2>Conclusión del proyecto y opiniones personales</h2>
-
-
-<p>
-La dedicación que le hemos otorgado al proyecto nos hace considerar necesario añadir éste apartado como anexo de la memoria. Esta práctica en su totalidad no solamente ha sido de las más entretenidas, si no que ha sido de las didácticas, haciendo que durante su realización nos hayamos adentrado en temas de un profundo interés, como el tratamiento de imágenes pesadas en python-tkinter, la implementación de una red neuronal para detectar matrículas de coches (idea que fue descartada), y por supuesto, el funcionamiento de criptosistemas de vital importancia como RSA, AES o protocolos de autenticación y certificación de usuarios.
-</p>
-<p>
-En conclusión, estamos profundamente agradecidos especialmente al profesorado de la asignatura por haber hecho de una asignatura compleja una experiencia enriquecedora.
-</p>
-<p>
-Nota: el texto no ha sido generado por Chat GPT, lo prometemos. 
 </p>
