@@ -389,6 +389,10 @@ class Server():
                     raise ValueError("Certificate is not valid yet")
                 if isinstance(issuerCert, Certificate):
                     issuerCert = issuerCert.certificate
+                
+                # check if is revoked
+                if cert.issuer.isRevoked(x509cert):
+                    raise ValueError("Certificate is revoked")
                     
                 issuerCert.public_key().verify(
                     x509cert.signature,

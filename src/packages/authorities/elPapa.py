@@ -42,7 +42,18 @@ class ElPapa:
             # Sign our certificate with our private key
             ).sign(self.__private_key, hashes.SHA256())
         
-        self.__certificate = Certificate(x509certificate)
+        self.__certificate = Certificate(x509certificate, x509certificate, self)
+        self.__revoked_certificates = x509.CertificateRevocationListBuilder().issuer_name(
+            self.__subject
+        ).last_update(
+            datetime.datetime.now(datetime.timezone.utc)
+        ).next_update(
+            datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=1)
+        ).add_extension(
+            x509.CRLReason(x509.ReasonFlags.unspecified),
+            critical=False,
+        ).sign(self.__private_key, hashes.SHA256())
+
 
     @property
     def certificate(self):
@@ -54,6 +65,18 @@ class ElPapa:
 
     def info(self):
         return self.__subject
+    
+    def __revokeCertificate(self, certificate:x509.Certificate):
+        self.__revoked_certificates = self.__revoked_certificates.add_revoked_certificate(
+            x509.RevokedCertificateBuilder().serial_number(
+                certificate.serial_number
+            ).revocation_date(
+                datetime.datetime.now(datetime.timezone.utc)
+            ).build()
+        ).sign(self.__private_key, hashes.SHA256())
+
+    def isRevoked(self, certificate:x509.Certificate):
+        return self.__revoked_certificates.get_revoked_certificate_by_serial_number(certificate.serial_number) is not None
     
 
     def issueCertificate(self, csr:x509.CertificateSigningRequest) -> x509.Certificate:
@@ -82,7 +105,7 @@ class ElPapa:
                 datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=10)
             ).sign(self.__private_key, hashes.SHA256())
         
-        certificate = Certificate(x509certificate, self.__certificate)
+        certificate = Certificate(x509certificate, self.__certificate, self)
         
         return certificate
 

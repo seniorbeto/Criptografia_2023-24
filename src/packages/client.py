@@ -274,9 +274,8 @@ class Client:
             if isinstance(certificate, Certificate):
                 x509cert = certificate.certificate
                 issuerCert = certificate.issuer_certificate
-                print("Checking certificate: ", x509cert)
-                print("Issuer certificate: ", issuerCert)
-                print(type(x509cert))
+                if certificate.issuer.isRevoked(x509cert):
+                    raise ValueError("Certificate is revoked")
                 if isinstance(issuerCert, Certificate):
                     issuerCert = issuerCert.certificate
                 issuerCert.public_key().verify(
@@ -285,10 +284,8 @@ class Client:
                     padding.PKCS1v15(),
                     x509cert.signature_hash_algorithm,
                 )
-                print("Certificate is valid")
                 trusted = certificate in self.__trusted_certs
                 certificate = certificate.issuer_certificate
-                print("certificate is trusted")
             elif isinstance(certificate, x509.Certificate):
                 trusted = certificate in self.__trusted_certs
                 break
