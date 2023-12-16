@@ -7,7 +7,7 @@ from cryptography.x509.oid import NameOID
 from packages.imgproc.img_cripto_utils import ImageCryptoUtils
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.primitives import hashes
-from packages.authorities import PerroSanche, Certificate
+from packages.authorities import PedroSanchez, Certificate
 import logging
 
 
@@ -18,22 +18,15 @@ class Client:
         # logging
         self.logger = logging.getLogger('Client')
         self.logger.setLevel(logging.DEBUG)
-
-        # Crea un controlador para guardar logs en un archivo llamado client.log
         file_handler = logging.FileHandler('SYSTEM.log')
         file_handler.setLevel(logging.INFO)
-
-        # Crea un formateador para los logs
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         file_handler.setFormatter(formatter)
-
-        # Agrega el controlador al logger de la clase Client
         self.logger.addHandler(file_handler)
-
-
 
         self.username = None
         self.password = None
+        self.__plain_pass = None
         self.encryptor = None
         self.__server = Server()
         self.__private_key = rsa.generate_private_key(
@@ -51,10 +44,10 @@ class Client:
         csr = x509.CertificateSigningRequestBuilder().subject_name(
             self.__subject
         ).sign(self.__private_key, hashes.SHA256())
-        perroSanche = PerroSanche()
-        self.__certificate = perroSanche.issueCertificate(csr)
+        pedroSanchez = PedroSanchez()
+        self.__certificate = pedroSanchez.issueCertificate(csr)
 
-        self.__trusted_certs = [self.__certificate] + perroSanche.trusted_certs
+        self.__trusted_certs = [self.__certificate] + pedroSanchez.trusted_certs
 
         """ # test certificado auto firmado
         self.__certificate = x509.CertificateBuilder().subject_name(
@@ -80,10 +73,10 @@ class Client:
 
         self.__trusted_certs = [self.__certificate]
         """
-    # FIXME remove this  
+    """    # FIXME remove this  
     @property
     def server(self):
-        return self.__server
+        return self.__server"""
     
     
 
@@ -112,6 +105,7 @@ class Client:
 
         if time is not None:
             if date is None:
+                self.logger.error("Date must be specified if time is specified")
                 raise Exception("Date must be specified if time is specified")
 
         if username is None:
@@ -127,7 +121,7 @@ class Client:
         decrypted_images = []
         progress = 0
         for im in images:
-            decrypted = ImageCryptoUtils.decrypt(im.image, self.password)
+            decrypted = ImageCryptoUtils.decrypt(im.image, self.__plain_pass)
             new = ImgPackage(im.author, im.date, im.time, im.path, decrypted)
             decrypted_images.append(new)
             yield round((progress / len(images)) * 100, 2), new
@@ -144,6 +138,7 @@ class Client:
         self.logger.info(" Registering user...")
         self.logger.info("   Checking servers certificate...")
         if not self.__check_servers_certificate(self.__server.certificate):
+            self.logger.error("Servers certificate not trusted")
             raise Exception("Servers certificate not trusted")
         self.logger.info("     Servers certificate is trusted")
         self.logger.info("   Obtaining servers public key...")
@@ -183,6 +178,7 @@ class Client:
         self.logger.info(" Logging in...")
         self.logger.info("   Checking servers certificate...")
         if not self.__check_servers_certificate(self.__server.certificate):
+            self.logger.error("Servers certificate not ")
             raise Exception("Servers certificate not trusted")
         self.logger.info("     Servers certificate is trusted")
         # encrypt password with public key
@@ -191,6 +187,7 @@ class Client:
         # encrypt password with public key
         
         self.logger.info("   Encrypting password...")
+        plain_pass = password
         password = password.encode()
         password = servers_pk.encrypt(
             password,
@@ -203,12 +200,13 @@ class Client:
         
         self.logger.info("   Password encrypted and sended to server")
         if self.__server.login(name, password):
+            self.__plain_pass = plain_pass
             self.username = name
             self.password = password
             self.logger.info(" Logged in")
 
         else:
-            self.logger.info(" User or password incorrect")
+            self.logger.error("User or password incorrect")
             raise ValueError("User or password incorrect")
 
     def remove_user(self) -> None:
@@ -228,16 +226,19 @@ class Client:
         self.logger.info(" Uploading image...")
         # check if image is png
         if not path.endswith(".png"):
+            self.logger.error("Image must be a PNG")
             raise Exception("Image must be a PNG")
         # try to open image
         try:
             image = Image.open(path)
         except:
+            self.logger.error("Image could not be opened check path and format")
             raise Exception("Image could not be opened check path and format")
         self.logger.info("   Image valid...")
         self.logger.info("   Encrypting image...")
         self.logger.info("     Checking servers certificate...")
         if not self.__check_servers_certificate(self.__server.certificate):
+            self.logger.error("Servers certificate not trusted")
             raise Exception("Servers certificate not trusted")
         self.logger.info("       Servers certificate is trusted")
         
@@ -245,7 +246,7 @@ class Client:
         servers_pk = self.__server.certificate.certificate.public_key()
         # encrypt image 
         self.logger.info("     Encrypting image...")
-        image = ImageCryptoUtils.encrypt(image, self.password, x, y, w, h)
+        image = ImageCryptoUtils.encrypt(image, self.__plain_pass, x, y, w, h)
         ImageCryptoUtils.generate_image_hash(image, self.__private_key, servers_pk)
         self.logger.info("       Image encrypted")
         self.logger.info("   Uploading image...")
@@ -267,17 +268,28 @@ class Client:
         :param certificate: certificate to check
         :return: True if the certificate is trusted, False otherwise
         """
-        # check servers certificate
-        serv_cert = self.__server.certificate
         # is a trusted certificate?
         trusted = False
         while not trusted:
             if isinstance(certificate, Certificate):
+                x509cert = certificate.certificate
+                issuerCert = certificate.issuer_certificate
+                if certificate.issuer.isRevoked(x509cert):
+                    raise ValueError("Certificate is revoked")
+                if isinstance(issuerCert, Certificate):
+                    issuerCert = issuerCert.certificate
+                issuerCert.public_key().verify(
+                    x509cert.signature,
+                    x509cert.tbs_certificate_bytes,
+                    padding.PKCS1v15(),
+                    x509cert.signature_hash_algorithm,
+                )
                 trusted = certificate in self.__trusted_certs
                 certificate = certificate.issuer_certificate
             elif isinstance(certificate, x509.Certificate):
                 trusted = certificate in self.__trusted_certs
                 break
             else:
+                self.logger.error("Servers certificate not valid")
                 raise ValueError("Servers certificate not valid")
         return trusted
